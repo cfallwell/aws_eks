@@ -69,39 +69,70 @@ variable "tags" {
   default     = {}
 }
 
-variable "enable_kubernetes_resources" {
+variable "flux_repository_url" {
+  type        = string
+  description = "Repository URL Flux should reconcile."
+  default     = "https://github.com/cfallwell/aws_eks.git"
+}
+
+variable "flux_repository_branch" {
+  type        = string
+  description = "Repository branch Flux should reconcile."
+  default     = "main"
+}
+
+variable "spa_demo_s3_bucket_name" {
+  type        = string
+  description = "Optional explicit bucket name for workload S3 storage."
+  default     = ""
+}
+
+variable "spa_demo_storage_size" {
+  type        = string
+  description = "Persistent EBS claim size for spa-demo."
+  default     = "20Gi"
+}
+
+variable "spa_demo_host" {
+  type        = string
+  description = "Optional DNS host for the spa-demo ALB ingress."
+  default     = ""
+}
+
+variable "splunk_otel_suspend" {
   type        = bool
-  description = "Whether to manage in-cluster Kubernetes resources (StorageClass/PVC) via Terraform."
+  description = "Whether to suspend the Splunk OTel HelmRelease until credentials are provided."
   default     = true
 }
 
-variable "enable_pod_secrets_provider" {
-  type        = bool
-  description = "Whether to provision AWS Secrets Manager + IRSA service account for pod secret access."
-  default     = true
+variable "splunk_otel_cluster_name" {
+  type        = string
+  description = "Cluster label used by Splunk OTel."
+  default     = ""
 }
 
-variable "pod_secrets_namespace" {
+variable "splunk_observability_realm" {
   type        = string
-  description = "Namespace for the pod secrets service account."
-  default     = "default"
+  description = "Splunk Observability realm."
+  default     = ""
 }
 
-variable "pod_secrets_service_account" {
+variable "splunk_observability_access_token" {
   type        = string
-  description = "Service account name for pods to read secrets from AWS."
-  default     = "secrets-reader"
+  description = "Splunk Observability access token."
+  sensitive   = true
+  default     = ""
 }
 
-variable "secrets_manager_secret_name" {
+variable "splunk_platform_endpoint" {
   type        = string
-  description = "AWS Secrets Manager secret name for pod access."
-  default     = "awseks/pod-secrets"
+  description = "Optional Splunk platform HEC endpoint."
+  default     = ""
 }
 
-variable "secrets_manager_secret_value" {
+variable "splunk_platform_token" {
   type        = string
-  description = "Optional secret value to store in AWS Secrets Manager (stored in TF state)."
+  description = "Optional Splunk platform HEC token."
   sensitive   = true
   default     = ""
 }

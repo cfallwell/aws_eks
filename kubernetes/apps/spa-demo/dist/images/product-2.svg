@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 220">
+  <rect width="320" height="220" rx="24" fill="#fef3c7"/>
+  <rect x="118" y="32" width="84" height="156" rx="24" fill="#111827"/>
+  <rect x="132" y="52" width="56" height="88" rx="14" fill="#22c55e"/>
+  <circle cx="160" cy="160" r="8" fill="#f9fafb"/>
+  <text x="24" y="196" fill="#111827" font-family="Arial, sans-serif" font-size="24" font-weight="700">Smart Watch</text>
+</svg>
