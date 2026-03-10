@@ -18,12 +18,17 @@ output "kubeconfig_command" {
   value       = "aws eks update-kubeconfig --region ${var.region} --name ${module.eks.cluster_name}"
 }
 
-output "secrets_manager_secret_arn" {
-  description = "Secrets Manager secret ARN for pod access (when enabled)."
-  value       = try(aws_secretsmanager_secret.pod[0].arn, null)
+output "flux_repository_branch" {
+  description = "Git branch Flux is configured to reconcile."
+  value       = var.flux_repository_branch
 }
 
-output "pod_secrets_service_account" {
-  description = "Service account annotated for Secrets Manager access (when enabled)."
-  value       = try(kubernetes_service_account_v1.secrets_reader[0].metadata[0].name, null)
+output "spa_demo_s3_bucket_name" {
+  description = "S3 bucket created for in-cluster workloads."
+  value       = aws_s3_bucket.spa_demo.bucket
+}
+
+output "spa_demo_s3_role_arn" {
+  description = "IRSA role granted to the spa-demo workload service account."
+  value       = aws_iam_role.spa_demo_s3.arn
 }

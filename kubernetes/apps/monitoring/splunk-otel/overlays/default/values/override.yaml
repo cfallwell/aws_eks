@@ -1,0 +1,9 @@
+clusterReceiver:
+  enabled: true
+
+logsCollection:
+  containers:
+    enabled: true
+
+autodetect:
+  prometheus: true

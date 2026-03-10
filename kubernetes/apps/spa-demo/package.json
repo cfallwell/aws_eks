@@ -1,0 +1,24 @@
+{
+  "name": "rumbootstrap-shopping-spa-ts-demo",
+  "version": "1.0.4",
+  "private": true,
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build && npm run sync-dist",
+    "sync-dist": "mkdir -p deploy/base/site/assets deploy/base/site/images deploy/base/nginx && cp dist/index.html deploy/base/site/index.html && cp dist/assets/app.js deploy/base/site/assets/app.js && cp dist/images/*.svg deploy/base/site/images/ && cp nginx.conf deploy/base/nginx/nginx.conf",
+    "preview": "vite preview",
+    "lint": "tsc --noEmit"
+  },
+  "dependencies": {
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-router-dom": "^6.22.0"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^4.0.0",
+    "@types/react": "^18.2.0",
+    "@types/react-dom": "^18.2.0",
+    "typescript": "^5.0.0",
+    "vite": "^5.0.0"
+  }
+}
