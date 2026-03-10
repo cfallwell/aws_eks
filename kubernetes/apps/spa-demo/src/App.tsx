@@ -1,170 +1,189 @@
-import React, { useState } from "react";
-import { Routes, Route, Link, NavLink } from "react-router-dom";
+import { useEffect, useState } from "react";
+import type { CSSProperties } from "react";
+import { NavLink, Route, Routes } from "react-router-dom";
+import Cart from "./components/Cart";
+import ProductDetail from "./components/ProductDetail";
+import ProductList from "./components/ProductList";
 import { RumRouterTracker, useEnableReplayPersist } from "./lib/rumbootstrap";
-import ProductList from "./ProductList";
-import ProductDetail from "./ProductDetail";
-import Cart from "./Cart";
-import LoremPage from "./LoremPage";
-
-export interface Product {
-  id: number;
-  name: string;
-  price: number;
-  image: string;
-}
-
-const initialProducts: Product[] = [
-  { id: 1, name: "Noise-Cancelling Headphones", price: 199.99, image: "/images/product-1.svg" },
-  { id: 2, name: "Smart Watch", price: 149.99, image: "/images/product-2.svg" },
-  { id: 3, name: "Wireless Mouse", price: 39.99, image: "/images/product-3.svg" },
-  { id: 4, name: "Mechanical Keyboard", price: 89.99, image: "/images/product-4.svg" },
-  { id: 5, name: "4K Monitor", price: 329.99, image: "/images/product-5.svg" },
-];
-
-export interface CartItem extends Product {
-  quantity: number;
-}
+import { fetchProducts } from "./lib/api";
+import type { CartItem, Product } from "./lib/types";
 
 export default function App() {
+  const [products, setProducts] = useState<Product[]>([]);
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const enableReplay = useEnableReplayPersist();
 
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadProducts() {
+      try {
+        const nextProducts = await fetchProducts();
+
+        if (!cancelled) {
+          setProducts(nextProducts);
+          setError(null);
+        }
+      } catch (err) {
+        if (!cancelled) {
+          setError(err instanceof Error ? err.message : "Failed to load products");
+        }
+      } finally {
+        if (!cancelled) {
+          setLoading(false);
+        }
+      }
+    }
+
+    loadProducts();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   const addToCart = (product: Product) => {
-    setCartItems((prev) => {
-      const existing = prev.find((item) => item.id === product.id);
+    setCartItems((current) => {
+      const existing = current.find((item) => item.id === product.id);
+
       if (existing) {
-        return prev.map((item) =>
+        return current.map((item) =>
           item.id === product.id ? { ...item, quantity: item.quantity + 1 } : item
         );
       }
-      return [...prev, { ...product, quantity: 1 }];
+
+      return [...current, { ...product, quantity: 1 }];
     });
   };
 
   const updateQuantity = (productId: number, delta: number) => {
-    setCartItems((prev) =>
-      prev.map((item) =>
-        item.id === productId ? { ...item, quantity: Math.max(1, item.quantity + delta) } : item
-      )
+    setCartItems((current) =>
+      current
+        .map((item) =>
+          item.id === productId ? { ...item, quantity: Math.max(0, item.quantity + delta) } : item
+        )
+        .filter((item) => item.quantity > 0)
     );
   };
 
-  const handleDelete = (_productId: number) => {
-    // Intentionally broken for observability testing.
-    try {
-      throw new Error("Delete is intentionally broken for demo purposes.");
-    } catch (err: any) {
-      console.error(err);
-      alert(err.message);
-    }
-  };
-
-  const totalCount = cartItems.reduce((sum, item) => sum + item.quantity, 0);
+  const totalItems = cartItems.reduce((sum, item) => sum + item.quantity, 0);
 
   return (
-    <div style={styles.appShell}>
-      <header style={styles.header}>
+    <div style={styles.page}>
+      <header style={styles.hero}>
         <div>
-          <h1 style={{ margin: 0 }}>
-            <Link to="/" style={styles.brandLink}>
-              Shopping SPA TS Demo
-            </Link>
-          </h1>
+          <p style={styles.eyebrow}>EKS + RDS + Node.js demo</p>
+          <h1 style={styles.title}>SPA demo with a real PostgreSQL backend</h1>
+          <p style={styles.subtitle}>
+            Products are loaded through a Node.js API backed by Amazon RDS for PostgreSQL while Splunk
+            RUM continues to observe client-side navigation.
+          </p>
           <button type="button" onClick={enableReplay} style={styles.replayButton}>
             Enable Session Replay
           </button>
         </div>
-
         <nav style={styles.nav}>
-          <NavLink to="/" style={navStyle} end>
-            Products
+          <NavLink to="/" style={navLinkStyle} end>
+            Catalog
           </NavLink>
-          <NavLink to="/cart" style={navStyle}>
-            Cart ({totalCount})
-          </NavLink>
-          <NavLink to="/about" style={navStyle}>
-            About
-          </NavLink>
-          <NavLink to="/support" style={navStyle}>
-            Support
-          </NavLink>
-          <NavLink to="/terms" style={navStyle}>
-            Terms
+          <NavLink to="/cart" style={navLinkStyle}>
+            Cart ({totalItems})
           </NavLink>
         </nav>
       </header>
 
-      {/* Route tracking for Splunk RUM */}
       <RumRouterTracker />
 
-      <main style={styles.main}>
-        <Routes>
-          <Route path="/" element={<ProductList products={initialProducts} onAddToCart={addToCart} />} />
-          <Route
-            path="/product/:id"
-            element={<ProductDetail products={initialProducts} onAddToCart={addToCart} />}
-          />
-          <Route
-            path="/cart"
-            element={<Cart items={cartItems} onUpdateQuantity={updateQuantity} onDelete={handleDelete} />}
-          />
-          <Route path="/about" element={<LoremPage title="About (Lorem Ipsum)" />} />
-          <Route path="/support" element={<LoremPage title="Support (Lorem Ipsum)" />} />
-          <Route path="/terms" element={<LoremPage title="Terms (Lorem Ipsum)" />} />
-          <Route path="*" element={<LoremPage title="Not Found (Lorem Ipsum)" />} />
-        </Routes>
-      </main>
+      {loading ? <p style={styles.status}>Loading catalog...</p> : null}
+      {error ? <p style={styles.error}>{error}</p> : null}
+
+      {!loading && !error ? (
+        <main style={styles.main}>
+          <Routes>
+            <Route path="/" element={<ProductList products={products} onAddToCart={addToCart} />} />
+            <Route
+              path="/products/:slug"
+              element={<ProductDetail products={products} onAddToCart={addToCart} />}
+            />
+            <Route path="/cart" element={<Cart items={cartItems} onUpdateQuantity={updateQuantity} />} />
+          </Routes>
+        </main>
+      ) : null}
     </div>
   );
 }
 
-const navStyle = ({ isActive }: { isActive: boolean }): React.CSSProperties => ({
+const navLinkStyle = ({ isActive }: { isActive: boolean }): CSSProperties => ({
   textDecoration: "none",
-  color: isActive ? "#111827" : "#2563eb",
-  fontWeight: 700,
+  color: isActive ? "#0f172a" : "#2563eb",
+  fontWeight: 800,
 });
 
-const styles: Record<string, React.CSSProperties> = {
-  appShell: {
-    fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
-    maxWidth: "1040px",
-    margin: "0 auto",
-    padding: "1rem",
+const styles: Record<string, CSSProperties> = {
+  page: {
+    minHeight: "100vh",
+    padding: "2rem",
+    background:
+      "radial-gradient(circle at top left, rgba(14,165,233,0.16), transparent 32%), linear-gradient(180deg, #f8fafc 0%, #e2e8f0 100%)",
+    color: "#0f172a",
+    fontFamily: '"Segoe UI", sans-serif',
   },
-  header: {
+  hero: {
+    maxWidth: "1100px",
+    margin: "0 auto 1.5rem",
     display: "flex",
-    alignItems: "flex-start",
     justifyContent: "space-between",
-    marginBottom: "1rem",
     gap: "1rem",
     flexWrap: "wrap",
+    alignItems: "flex-end",
   },
-  brandLink: {
-    textDecoration: "none",
-    color: "#111827",
+  eyebrow: {
+    margin: 0,
+    textTransform: "uppercase",
+    letterSpacing: "0.18em",
+    color: "#0f766e",
+    fontWeight: 800,
+    fontSize: "0.78rem",
   },
-  nav: {
-    display: "flex",
-    flexWrap: "wrap",
-    gap: "1rem",
-    alignItems: "center",
-    paddingTop: "0.25rem",
+  title: {
+    margin: "0.4rem 0 0",
+    fontSize: "clamp(2rem, 5vw, 3.5rem)",
+    lineHeight: 1.05,
   },
-  main: {
-    backgroundColor: "#f9fafb",
-    padding: "1rem",
-    borderRadius: "0.75rem",
-    boxShadow: "0 1px 3px rgba(0,0,0,0.08)",
+  subtitle: {
+    maxWidth: "720px",
+    color: "#334155",
+    lineHeight: 1.6,
+    marginBottom: "0.75rem",
   },
   replayButton: {
-    marginTop: "0.5rem",
-    padding: "0.25rem 0.75rem",
-    borderRadius: "0.375rem",
+    padding: "0.55rem 1rem",
+    borderRadius: "999px",
     border: "1px solid #2563eb",
     backgroundColor: "#eff6ff",
     color: "#2563eb",
     cursor: "pointer",
-    fontSize: "0.85rem",
+    fontWeight: 700,
+  },
+  nav: {
+    display: "flex",
+    gap: "1rem",
+    alignItems: "center",
+  },
+  main: {
+    maxWidth: "1100px",
+    margin: "0 auto",
+  },
+  status: {
+    maxWidth: "1100px",
+    margin: "0 auto 1rem",
+  },
+  error: {
+    maxWidth: "1100px",
+    margin: "0 auto 1rem",
+    color: "#b91c1c",
     fontWeight: 700,
   },
 };

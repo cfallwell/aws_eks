@@ -5,15 +5,18 @@ resources:
   - ./namespace.yaml
   - ./serviceaccount.yaml
   - ./pvc.yaml
+  - ./secret.yaml
   - ./deployment.yaml
   - ./service.yaml
   - ./ingress.yaml
 generatorOptions:
   disableNameSuffixHash: true
 configMapGenerator:
-  - name: spa-demo-nginx
+  - name: spa-demo-runtime
     files:
-      - nginx.conf=./nginx/nginx.conf
+      - package.json=./runtime/package.json
+      - package-lock.json=./runtime/package-lock.json
+      - server.js=./runtime/server.js
   - name: spa-demo-site
     files:
       - index.html=./site/index.html

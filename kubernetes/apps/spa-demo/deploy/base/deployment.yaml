@@ -14,40 +14,68 @@ spec:
         app.kubernetes.io/name: spa-demo
     spec:
       serviceAccountName: spa-demo
+      initContainers:
+        - name: prepare-app
+          image: node:20-alpine
+          command:
+            - /bin/sh
+            - -ec
+            - |
+              mkdir -p /workspace/dist/assets /workspace/dist/images
+              cp /config/runtime/package.json /workspace/package.json
+              cp /config/runtime/package-lock.json /workspace/package-lock.json
+              cp /config/runtime/server.js /workspace/server.js
+              cp /config/site/index.html /workspace/dist/index.html
+              cp /config/assets/app.js /workspace/dist/assets/app.js
+              cp /config/images/product-*.svg /workspace/dist/images/
+              npm ci --omit=dev --ignore-scripts --prefix /workspace
+          volumeMounts:
+            - name: app-runtime
+              mountPath: /workspace
+            - name: spa-demo-runtime
+              mountPath: /config/runtime
+            - name: spa-demo-site
+              mountPath: /config/site
+            - name: spa-demo-assets
+              mountPath: /config/assets
+            - name: spa-demo-images
+              mountPath: /config/images
       containers:
-        - name: nginx
-          image: nginx:1.27-alpine
+        - name: app
+          image: node:20-alpine
+          command:
+            - node
+            - /app/server.js
           ports:
-            - containerPort: 8080
+            - containerPort: 3000
               name: http
+          envFrom:
+            - secretRef:
+                name: spa-demo-db
           env:
             - name: S3_BUCKET_NAME
               value: ${spa_demo_s3_bucket_name}
+            - name: DATA_DIR
+              value: /var/lib/spa-demo
           volumeMounts:
-            - name: nginx-config
-              mountPath: /etc/nginx/conf.d/default.conf
-              subPath: nginx.conf
-            - name: spa-demo-site
-              mountPath: /usr/share/nginx/html/index.html
-              subPath: index.html
-            - name: spa-demo-assets
-              mountPath: /usr/share/nginx/html/assets
-            - name: spa-demo-images
-              mountPath: /usr/share/nginx/html/images
+            - name: app-runtime
+              mountPath: /app
             - name: spa-demo-data
               mountPath: /var/lib/spa-demo
           readinessProbe:
             httpGet:
-              path: /
+              path: /api/health
               port: http
           livenessProbe:
             httpGet:
-              path: /
+              path: /api/health
               port: http
       volumes:
-        - name: nginx-config
+        - name: app-runtime
+          emptyDir: {}
+        - name: spa-demo-runtime
           configMap:
-            name: spa-demo-nginx
+            name: spa-demo-runtime
         - name: spa-demo-site
           configMap:
             name: spa-demo-site

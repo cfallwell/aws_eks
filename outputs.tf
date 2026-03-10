@@ -32,3 +32,13 @@ output "spa_demo_s3_role_arn" {
   description = "IRSA role granted to the spa-demo workload service account."
   value       = aws_iam_role.spa_demo_s3.arn
 }
+
+output "spa_demo_db_endpoint" {
+  description = "RDS endpoint for the spa-demo PostgreSQL database."
+  value       = aws_db_instance.spa_demo.address
+}
+
+output "spa_demo_db_secret_name" {
+  description = "Kubernetes secret used by the spa-demo API to connect to PostgreSQL."
+  value       = "spa-demo-db"
+}

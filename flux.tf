@@ -39,6 +39,10 @@ resource "kubernetes_secret_v1" "cluster_secrets" {
     splunk_observability_access_token = var.splunk_observability_access_token
     splunk_platform_endpoint          = var.splunk_platform_endpoint
     splunk_platform_token             = var.splunk_platform_token
+    spa_demo_db_endpoint              = aws_db_instance.spa_demo.address
+    spa_demo_db_name                  = var.spa_demo_db_name
+    spa_demo_db_username              = var.spa_demo_db_username
+    spa_demo_db_password              = random_password.spa_demo_db.result
   }
 
   type       = "Opaque"
