@@ -1,10 +1,9 @@
----
 apiVersion: v1
 kind: Service
 metadata:
   name: spa-demo
+  namespace: spa-demo
 spec:
-  type: LoadBalancer
   selector:
     app.kubernetes.io/name: spa-demo
   ports:

@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react";
 import type { CSSProperties } from "react";
-import { Link, NavLink, Route, Routes } from "react-router-dom";
+import { NavLink, Route, Routes } from "react-router-dom";
+import Cart from "./components/Cart";
 import ProductDetail from "./components/ProductDetail";
 import ProductList from "./components/ProductList";
-import Cart from "./components/Cart";
+import { RumRouterTracker, useEnableReplayPersist } from "./lib/rumbootstrap";
 import { fetchProducts } from "./lib/api";
 import type { CartItem, Product } from "./lib/types";
 
@@ -12,6 +13,7 @@ export default function App() {
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const enableReplay = useEnableReplayPersist();
 
   useEffect(() => {
     let cancelled = false;
@@ -36,6 +38,7 @@ export default function App() {
     }
 
     loadProducts();
+
     return () => {
       cancelled = true;
     };
@@ -74,9 +77,12 @@ export default function App() {
           <p style={styles.eyebrow}>EKS + RDS + Node.js demo</p>
           <h1 style={styles.title}>SPA demo with a real PostgreSQL backend</h1>
           <p style={styles.subtitle}>
-            Products now come from a Node API backed by Amazon RDS for PostgreSQL instead of hardcoded
-            frontend state.
+            Products are loaded through a Node.js API backed by Amazon RDS for PostgreSQL while Splunk
+            RUM continues to observe client-side navigation.
           </p>
+          <button type="button" onClick={enableReplay} style={styles.replayButton}>
+            Enable Session Replay
+          </button>
         </div>
         <nav style={styles.nav}>
           <NavLink to="/" style={navLinkStyle} end>
@@ -88,7 +94,9 @@ export default function App() {
         </nav>
       </header>
 
-      {loading ? <p>Loading catalog...</p> : null}
+      <RumRouterTracker />
+
+      {loading ? <p style={styles.status}>Loading catalog...</p> : null}
       {error ? <p style={styles.error}>{error}</p> : null}
 
       {!loading && !error ? (
@@ -100,15 +108,6 @@ export default function App() {
               element={<ProductDetail products={products} onAddToCart={addToCart} />}
             />
             <Route path="/cart" element={<Cart items={cartItems} onUpdateQuantity={updateQuantity} />} />
-            <Route
-              path="*"
-              element={
-                <section>
-                  <h2>Not found</h2>
-                  <Link to="/">Back to catalog</Link>
-                </section>
-              }
-            />
           </Routes>
         </main>
       ) : null}
@@ -157,6 +156,16 @@ const styles: Record<string, CSSProperties> = {
     maxWidth: "720px",
     color: "#334155",
     lineHeight: 1.6,
+    marginBottom: "0.75rem",
+  },
+  replayButton: {
+    padding: "0.55rem 1rem",
+    borderRadius: "999px",
+    border: "1px solid #2563eb",
+    backgroundColor: "#eff6ff",
+    color: "#2563eb",
+    cursor: "pointer",
+    fontWeight: 700,
   },
   nav: {
     display: "flex",
@@ -166,6 +175,10 @@ const styles: Record<string, CSSProperties> = {
   main: {
     maxWidth: "1100px",
     margin: "0 auto",
+  },
+  status: {
+    maxWidth: "1100px",
+    margin: "0 auto 1rem",
   },
   error: {
     maxWidth: "1100px",

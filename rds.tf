@@ -54,36 +54,3 @@ resource "aws_db_instance" "spa_demo" {
 
   tags = local.common_tags
 }
-
-resource "kubernetes_namespace_v1" "spa_demo" {
-  count = var.enable_kubernetes_resources ? 1 : 0
-
-  metadata {
-    name = "spa-demo"
-  }
-
-  depends_on = [module.eks]
-}
-
-resource "kubernetes_secret_v1" "spa_demo_db" {
-  count = var.enable_kubernetes_resources ? 1 : 0
-
-  metadata {
-    name      = "spa-demo-db"
-    namespace = kubernetes_namespace_v1.spa_demo[0].metadata[0].name
-  }
-
-  data = {
-    DB_HOST     = aws_db_instance.spa_demo.address
-    DB_PORT     = tostring(aws_db_instance.spa_demo.port)
-    DB_NAME     = aws_db_instance.spa_demo.db_name
-    DB_USER     = aws_db_instance.spa_demo.username
-    DB_PASSWORD = random_password.spa_demo_db.result
-    PORT        = "3000"
-    NODE_ENV    = "production"
-  }
-
-  type = "Opaque"
-
-  depends_on = [module.eks]
-}

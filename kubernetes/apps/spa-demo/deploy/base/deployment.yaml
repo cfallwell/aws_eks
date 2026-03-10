@@ -1,8 +1,8 @@
----
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: spa-demo
+  namespace: spa-demo
 spec:
   replicas: 2
   selector:
@@ -13,6 +13,7 @@ spec:
       labels:
         app.kubernetes.io/name: spa-demo
     spec:
+      serviceAccountName: spa-demo
       initContainers:
         - name: prepare-app
           image: node:20-alpine
@@ -21,9 +22,9 @@ spec:
             - -ec
             - |
               mkdir -p /workspace/dist/assets /workspace/dist/images
-              cp /config/package/package.json /workspace/package.json
-              cp /config/package/package-lock.json /workspace/package-lock.json
-              cp /config/server/server.js /workspace/server.js
+              cp /config/runtime/package.json /workspace/package.json
+              cp /config/runtime/package-lock.json /workspace/package-lock.json
+              cp /config/runtime/server.js /workspace/server.js
               cp /config/site/index.html /workspace/dist/index.html
               cp /config/assets/app.js /workspace/dist/assets/app.js
               cp /config/images/product-*.svg /workspace/dist/images/
@@ -31,15 +32,13 @@ spec:
           volumeMounts:
             - name: app-runtime
               mountPath: /workspace
-            - name: app-package
-              mountPath: /config/package
-            - name: app-server
-              mountPath: /config/server
-            - name: app-site
+            - name: spa-demo-runtime
+              mountPath: /config/runtime
+            - name: spa-demo-site
               mountPath: /config/site
-            - name: app-assets
+            - name: spa-demo-assets
               mountPath: /config/assets
-            - name: app-images
+            - name: spa-demo-images
               mountPath: /config/images
       containers:
         - name: app
@@ -53,9 +52,16 @@ spec:
           envFrom:
             - secretRef:
                 name: spa-demo-db
+          env:
+            - name: S3_BUCKET_NAME
+              value: ${spa_demo_s3_bucket_name}
+            - name: DATA_DIR
+              value: /var/lib/spa-demo
           volumeMounts:
             - name: app-runtime
               mountPath: /app
+            - name: spa-demo-data
+              mountPath: /var/lib/spa-demo
           readinessProbe:
             httpGet:
               path: /api/health
@@ -67,18 +73,18 @@ spec:
       volumes:
         - name: app-runtime
           emptyDir: {}
-        - name: app-package
+        - name: spa-demo-runtime
           configMap:
-            name: spa-demo-package
-        - name: app-server
-          configMap:
-            name: spa-demo-server
-        - name: app-site
+            name: spa-demo-runtime
+        - name: spa-demo-site
           configMap:
             name: spa-demo-site
-        - name: app-assets
+        - name: spa-demo-assets
           configMap:
             name: spa-demo-assets
-        - name: app-images
+        - name: spa-demo-images
           configMap:
             name: spa-demo-images
+        - name: spa-demo-data
+          persistentVolumeClaim:
+            claimName: spa-demo-data
