@@ -105,3 +105,27 @@ variable "secrets_manager_secret_value" {
   sensitive   = true
   default     = ""
 }
+
+variable "spa_demo_db_name" {
+  type        = string
+  description = "PostgreSQL database name for the spa-demo API."
+  default     = "spademo"
+}
+
+variable "spa_demo_db_username" {
+  type        = string
+  description = "PostgreSQL master username for the spa-demo API."
+  default     = "spademo"
+}
+
+variable "spa_demo_db_instance_class" {
+  type        = string
+  description = "RDS instance class for the spa-demo PostgreSQL database."
+  default     = "db.t4g.micro"
+}
+
+variable "spa_demo_db_allocated_storage" {
+  type        = number
+  description = "Allocated storage in GiB for the spa-demo PostgreSQL database."
+  default     = 20
+}

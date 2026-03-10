@@ -8,7 +8,7 @@ locals {
 
   common_tags = merge(
     {
-      Project = local.name
+      Project                      = local.name
       splunkit_data_classification = "private"
       splunkit_environment_type    = "non-prd"
     },
@@ -27,9 +27,9 @@ module "vpc" {
   private_subnets = [for i in range(var.az_count) : cidrsubnet(var.vpc_cidr, 4, i)]
   public_subnets  = [for i in range(var.az_count) : cidrsubnet(var.vpc_cidr, 4, i + 8)]
 
-  enable_nat_gateway = true
-  single_nat_gateway = true
-  enable_dns_support = true
+  enable_nat_gateway   = true
+  single_nat_gateway   = true
+  enable_dns_support   = true
   enable_dns_hostnames = true
 
   tags = local.common_tags
@@ -46,11 +46,11 @@ module "eks" {
   subnet_ids               = module.vpc.private_subnets
   control_plane_subnet_ids = module.vpc.private_subnets
 
-  endpoint_private_access = true
-  endpoint_public_access  = true
+  endpoint_private_access      = true
+  endpoint_public_access       = true
   endpoint_public_access_cidrs = var.public_access_cidrs
 
-  enable_irsa                             = true
+  enable_irsa                              = true
   enable_cluster_creator_admin_permissions = true
   authentication_mode                      = "API_AND_CONFIG_MAP"
 
@@ -68,7 +68,7 @@ module "eks" {
     }
   }
 
-  create_kms_key     = true
+  create_kms_key = true
   encryption_config = {
     resources = ["secrets"]
   }
@@ -133,9 +133,9 @@ data "aws_iam_policy_document" "ebs_csi_assume_role" {
 resource "aws_secretsmanager_secret" "pod" {
   count = var.enable_pod_secrets_provider ? 1 : 0
 
-  name        = var.secrets_manager_secret_name
-  kms_key_id  = module.eks.kms_key_arn
-  tags        = local.common_tags
+  name       = var.secrets_manager_secret_name
+  kms_key_id = module.eks.kms_key_arn
+  tags       = local.common_tags
 }
 
 resource "aws_secretsmanager_secret_version" "pod" {

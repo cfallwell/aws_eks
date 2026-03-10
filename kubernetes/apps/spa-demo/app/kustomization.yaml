@@ -1,0 +1,30 @@
+---
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: spa-demo
+resources:
+  - ./deployment.yaml
+  - ./service.yaml
+generatorOptions:
+  disableNameSuffixHash: true
+configMapGenerator:
+  - name: spa-demo-package
+    files:
+      - package.json=./bundle/package.json
+      - package-lock.json=./bundle/package-lock.json
+  - name: spa-demo-server
+    files:
+      - server.js=./bundle/server.js
+  - name: spa-demo-site
+    files:
+      - index.html=./bundle/index.html
+  - name: spa-demo-assets
+    files:
+      - app.js=./bundle/assets/app.js
+  - name: spa-demo-images
+    files:
+      - product-1.svg=./bundle/images/product-1.svg
+      - product-2.svg=./bundle/images/product-2.svg
+      - product-3.svg=./bundle/images/product-3.svg
+      - product-4.svg=./bundle/images/product-4.svg
+      - product-5.svg=./bundle/images/product-5.svg

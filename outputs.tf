@@ -27,3 +27,13 @@ output "pod_secrets_service_account" {
   description = "Service account annotated for Secrets Manager access (when enabled)."
   value       = try(kubernetes_service_account_v1.secrets_reader[0].metadata[0].name, null)
 }
+
+output "spa_demo_db_endpoint" {
+  description = "RDS endpoint for the spa-demo PostgreSQL database."
+  value       = aws_db_instance.spa_demo.address
+}
+
+output "spa_demo_db_secret_name" {
+  description = "Kubernetes secret used by the spa-demo API to connect to PostgreSQL."
+  value       = try(kubernetes_secret_v1.spa_demo_db[0].metadata[0].name, null)
+}

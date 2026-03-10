@@ -1,0 +1,84 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: spa-demo
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: spa-demo
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: spa-demo
+    spec:
+      initContainers:
+        - name: prepare-app
+          image: node:20-alpine
+          command:
+            - /bin/sh
+            - -ec
+            - |
+              mkdir -p /workspace/dist/assets /workspace/dist/images
+              cp /config/package/package.json /workspace/package.json
+              cp /config/package/package-lock.json /workspace/package-lock.json
+              cp /config/server/server.js /workspace/server.js
+              cp /config/site/index.html /workspace/dist/index.html
+              cp /config/assets/app.js /workspace/dist/assets/app.js
+              cp /config/images/product-*.svg /workspace/dist/images/
+              npm ci --omit=dev --ignore-scripts --prefix /workspace
+          volumeMounts:
+            - name: app-runtime
+              mountPath: /workspace
+            - name: app-package
+              mountPath: /config/package
+            - name: app-server
+              mountPath: /config/server
+            - name: app-site
+              mountPath: /config/site
+            - name: app-assets
+              mountPath: /config/assets
+            - name: app-images
+              mountPath: /config/images
+      containers:
+        - name: app
+          image: node:20-alpine
+          command:
+            - node
+            - /app/server.js
+          ports:
+            - containerPort: 3000
+              name: http
+          envFrom:
+            - secretRef:
+                name: spa-demo-db
+          volumeMounts:
+            - name: app-runtime
+              mountPath: /app
+          readinessProbe:
+            httpGet:
+              path: /api/health
+              port: http
+          livenessProbe:
+            httpGet:
+              path: /api/health
+              port: http
+      volumes:
+        - name: app-runtime
+          emptyDir: {}
+        - name: app-package
+          configMap:
+            name: spa-demo-package
+        - name: app-server
+          configMap:
+            name: spa-demo-server
+        - name: app-site
+          configMap:
+            name: spa-demo-site
+        - name: app-assets
+          configMap:
+            name: spa-demo-assets
+        - name: app-images
+          configMap:
+            name: spa-demo-images
