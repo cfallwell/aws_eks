@@ -23,6 +23,7 @@ EKS infrastructure, Flux bootstrap, and an EKS-compatible GitOps workload set.
 ## Apply Flow
 
 ```bash
+cp terraform.tfvars.example terraform.tfvars
 terraform init
 terraform apply
 ```
