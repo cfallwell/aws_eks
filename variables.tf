@@ -2,11 +2,6 @@ variable "region" {
   type        = string
   description = "AWS region to deploy into."
   default     = "us-east-1"
-
-  validation {
-    condition     = var.region == "us-east-1"
-    error_message = "This project is pinned to us-east-1."
-  }
 }
 
 variable "name" {
