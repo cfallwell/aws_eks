@@ -12,12 +12,12 @@ locals {
   splunk_cluster_name     = var.splunk_otel_cluster_name != "" ? var.splunk_otel_cluster_name : local.name
 
   common_tags = merge(
+    var.tags,
     {
       Project                      = local.name
       splunkit_data_classification = "private"
       splunkit_environment_type    = "non-prd"
-    },
-    var.tags
+    }
   )
 }
 
