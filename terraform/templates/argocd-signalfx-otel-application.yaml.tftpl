@@ -1,0 +1,30 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: signalfx-otel
+  namespace: ${argocd_namespace}
+spec:
+  project: platform
+  destination:
+    namespace: ${signalfx_otel_namespace}
+    server: https://kubernetes.default.svc
+  source:
+    repoURL: ${gitops_repository_url}
+    targetRevision: ${gitops_repository_branch}
+    path: charts/signalfx-otel
+    helm:
+      valueFiles:
+        - values.yaml
+        - overlays/default/values.yaml
+      values: |
+        splunk-otel-collector:
+          clusterName: ${signalfx_cluster_name}
+          splunkObservability:
+            realm: ${signalfx_observability_realm}
+            accessToken: ${signalfx_observability_access_token}
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=false

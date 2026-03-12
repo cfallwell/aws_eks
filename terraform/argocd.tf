@@ -31,6 +31,14 @@ resource "kubernetes_namespace_v1" "spa_demo" {
   }
 }
 
+resource "kubernetes_namespace_v1" "signalfx_otel" {
+  count = var.signalfx_otel_enabled ? 1 : 0
+
+  metadata {
+    name = var.signalfx_otel_namespace
+  }
+}
+
 resource "kubernetes_storage_class_v1" "gp3" {
   metadata {
     name = "gp3"
@@ -101,16 +109,35 @@ locals {
     argocd_namespace         = var.argocd_namespace
     gitops_repository_url    = var.gitops_repository_url
     gitops_repository_branch = var.gitops_repository_branch
+    signalfx_otel_namespace  = var.signalfx_otel_namespace
     spa_demo_host            = var.spa_demo_host
     spa_demo_storage_size    = var.spa_demo_storage_size
     spa_demo_s3_bucket_name  = aws_s3_bucket.spa_demo.bucket
     spa_demo_s3_role_arn     = aws_iam_role.spa_demo_s3.arn
   })
+
+  argocd_signalfx_otel_application_manifest = templatefile("${path.module}/templates/argocd-signalfx-otel-application.yaml.tftpl", {
+    argocd_namespace                    = var.argocd_namespace
+    gitops_repository_url               = var.gitops_repository_url
+    gitops_repository_branch            = var.gitops_repository_branch
+    signalfx_otel_namespace             = var.signalfx_otel_namespace
+    signalfx_cluster_name               = module.eks.cluster_name
+    signalfx_observability_realm        = var.signalfx_observability_realm
+    signalfx_observability_access_token = var.signalfx_observability_access_token
+  })
+
+  argocd_bootstrap_manifest = join(
+    "\n---\n",
+    compact([
+      local.argocd_spa_demo_application_manifest,
+      var.signalfx_otel_enabled ? local.argocd_signalfx_otel_application_manifest : ""
+    ])
+  )
 }
 
 resource "null_resource" "argocd_bootstrap" {
   triggers = {
-    manifest_sha = sha256(local.argocd_spa_demo_application_manifest)
+    manifest_sha = sha256(local.argocd_bootstrap_manifest)
     cluster_name = module.eks.cluster_name
     region       = var.region
   }
@@ -120,7 +147,7 @@ resource "null_resource" "argocd_bootstrap" {
       set -euo pipefail
       aws eks update-kubeconfig --region ${var.region} --name ${module.eks.cluster_name}
       cat <<'EOF' | kubectl apply -f -
-      ${local.argocd_spa_demo_application_manifest}
+      ${local.argocd_bootstrap_manifest}
       EOF
     EOT
   }
@@ -130,6 +157,7 @@ resource "null_resource" "argocd_bootstrap" {
     helm_release.argocd,
     helm_release.aws_load_balancer_controller,
     kubernetes_namespace_v1.spa_demo,
+    kubernetes_namespace_v1.signalfx_otel,
     kubernetes_secret_v1.spa_demo_db,
     kubernetes_storage_class_v1.gp3,
     aws_db_instance.spa_demo,

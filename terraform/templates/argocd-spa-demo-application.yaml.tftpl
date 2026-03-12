@@ -9,6 +9,8 @@ spec:
   destinations:
     - namespace: spa-demo
       server: https://kubernetes.default.svc
+    - namespace: ${signalfx_otel_namespace}
+      server: https://kubernetes.default.svc
   clusterResourceWhitelist:
     - group: '*'
       kind: '*'
