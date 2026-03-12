@@ -15,6 +15,7 @@ locals {
     var.tags,
     {
       Project                      = local.name
+      resource_owner               = "fall1972"
       splunkit_data_classification = "private"
       splunkit_environment_type    = "non-prd"
     }
