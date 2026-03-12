@@ -1,0 +1,31 @@
+replicas: 2
+
+image:
+  repository: node
+  tag: 20-alpine
+  pullPolicy: IfNotPresent
+
+existingSecretName: spa-demo-db
+s3BucketName: ""
+
+serviceAccount:
+  create: true
+  name: spa-demo
+  annotations: {}
+
+persistence:
+  enabled: true
+  size: 20Gi
+  storageClassName: gp3
+
+service:
+  port: 80
+  targetPort: 3000
+
+ingress:
+  enabled: true
+  className: alb
+  host: ""
+  annotations:
+    alb.ingress.kubernetes.io/scheme: internet-facing
+    alb.ingress.kubernetes.io/target-type: ip

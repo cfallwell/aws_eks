@@ -8,8 +8,10 @@ locals {
   name = var.name
   azs  = slice(data.aws_availability_zones.available.names, 0, var.az_count)
 
-  spa_demo_s3_bucket_name = var.spa_demo_s3_bucket_name != "" ? var.spa_demo_s3_bucket_name : "${local.name}-${data.aws_caller_identity.current.account_id}-${random_string.s3_suffix.result}"
-  splunk_cluster_name     = var.splunk_otel_cluster_name != "" ? var.splunk_otel_cluster_name : local.name
+  gitops_repository_url    = var.gitops_repository_url != "" ? var.gitops_repository_url : var.flux_repository_url
+  gitops_repository_branch = var.gitops_repository_branch != "" ? var.gitops_repository_branch : var.flux_repository_branch
+  spa_demo_s3_bucket_name  = var.spa_demo_s3_bucket_name != "" ? var.spa_demo_s3_bucket_name : "${local.name}-${data.aws_caller_identity.current.account_id}-${random_string.s3_suffix.result}"
+  splunk_cluster_name      = var.splunk_otel_cluster_name != "" ? var.splunk_otel_cluster_name : local.name
 
   common_tags = merge(
     var.tags,

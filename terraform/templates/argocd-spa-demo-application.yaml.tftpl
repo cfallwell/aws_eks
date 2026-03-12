@@ -1,0 +1,48 @@
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: platform
+  namespace: ${argocd_namespace}
+spec:
+  sourceRepos:
+    - ${gitops_repository_url}
+  destinations:
+    - namespace: spa-demo
+      server: https://kubernetes.default.svc
+  clusterResourceWhitelist:
+    - group: '*'
+      kind: '*'
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: spa-demo
+  namespace: ${argocd_namespace}
+spec:
+  project: platform
+  destination:
+    namespace: spa-demo
+    server: https://kubernetes.default.svc
+  source:
+    repoURL: ${gitops_repository_url}
+    targetRevision: ${gitops_repository_branch}
+    path: kubernetes/charts/spa-demo
+    helm:
+      values: |
+        replicas: 2
+        existingSecretName: spa-demo-db
+        s3BucketName: ${spa_demo_s3_bucket_name}
+        serviceAccount:
+          annotations:
+            eks.amazonaws.com/role-arn: ${spa_demo_s3_role_arn}
+        persistence:
+          size: ${spa_demo_storage_size}
+        ingress:
+          enabled: true
+          host: ${spa_demo_host}
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=false
