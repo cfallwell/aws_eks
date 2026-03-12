@@ -104,11 +104,13 @@ resource "helm_release" "aws_load_balancer_controller" {
 
   values = [
     yamlencode({
-      clusterName                = module.eks.cluster_name
-      region                     = var.region
-      replicaCount               = 2
-      createIngressClassResource = true
-      ingressClass               = "alb"
+      clusterName                 = module.eks.cluster_name
+      region                      = var.region
+      vpcId                       = module.vpc.vpc_id
+      replicaCount                = 2
+      createIngressClassResource  = true
+      ingressClass                = "alb"
+      enableServiceMutatorWebhook = false
       serviceAccount = {
         create = true
         name   = "aws-load-balancer-controller"
