@@ -36,7 +36,7 @@ resource "aws_security_group" "spa_demo_db" {
 resource "aws_db_instance" "spa_demo" {
   identifier              = "${local.name}-spa-demo"
   engine                  = "postgres"
-  engine_version          = "16.4"
+  engine_version          = "16.13"
   instance_class          = var.spa_demo_db_instance_class
   allocated_storage       = var.spa_demo_db_allocated_storage
   max_allocated_storage   = var.spa_demo_db_allocated_storage * 2
