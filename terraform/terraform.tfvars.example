@@ -22,8 +22,12 @@ gitops_repository_url    = "https://github.com/cfallwell/aws_eks.git"
 gitops_repository_branch = "main"
 signalfx_otel_enabled    = false
 signalfx_otel_namespace  = "monitoring"
+signalfx_otel_cluster_name = "awseks"
 signalfx_observability_realm = ""
 signalfx_observability_access_token = ""
+signalfx_platform_endpoint = ""
+signalfx_platform_hec_token = ""
+signalfx_otel_secret_name = "signalfx-otel-credentials"
 
 spa_demo_s3_bucket_name = ""
 spa_demo_storage_size   = "20Gi"

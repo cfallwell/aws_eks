@@ -100,6 +100,12 @@ variable "signalfx_otel_namespace" {
   default     = "monitoring"
 }
 
+variable "signalfx_otel_cluster_name" {
+  type        = string
+  description = "Cluster name reported by the SignalFx OpenTelemetry collector."
+  default     = ""
+}
+
 variable "signalfx_observability_realm" {
   type        = string
   description = "Splunk Observability Cloud realm for the SignalFx OpenTelemetry collector."
@@ -111,6 +117,25 @@ variable "signalfx_observability_access_token" {
   description = "Splunk Observability Cloud access token for the SignalFx OpenTelemetry collector."
   sensitive   = true
   default     = ""
+}
+
+variable "signalfx_platform_endpoint" {
+  type        = string
+  description = "Splunk Platform HEC endpoint for the SignalFx OpenTelemetry collector."
+  default     = ""
+}
+
+variable "signalfx_platform_hec_token" {
+  type        = string
+  description = "Splunk Platform HEC token for the SignalFx OpenTelemetry collector."
+  sensitive   = true
+  default     = ""
+}
+
+variable "signalfx_otel_secret_name" {
+  type        = string
+  description = "Name of the Kubernetes secret containing SignalFx OpenTelemetry credentials."
+  default     = "signalfx-otel-credentials"
 }
 
 variable "spa_demo_s3_bucket_name" {

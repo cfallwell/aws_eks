@@ -15,13 +15,16 @@ spec:
     helm:
       valueFiles:
         - values.yaml
-        - overlays/default/values.yaml
       values: |
         splunk-otel-collector:
-          clusterName: ${signalfx_cluster_name}
+          clusterName: ${signalfx_otel_cluster_name}
           splunkObservability:
             realm: ${signalfx_observability_realm}
-            accessToken: ${signalfx_observability_access_token}
+          splunkPlatform:
+            endpoint: ${signalfx_platform_endpoint}
+          secret:
+            create: false
+            name: ${signalfx_otel_secret_name}
   syncPolicy:
     automated:
       prune: true

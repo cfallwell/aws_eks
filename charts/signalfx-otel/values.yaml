@@ -1,12 +1,23 @@
 splunk-otel-collector:
   distribution: eks
   cloudProvider: aws
-  clusterName: "replace-me"
+  clusterName: ""
 
   splunkObservability:
     realm: "us1"
-    accessToken: "replace-me"
-    profilingEnabled: false
+    accessToken: ""
+    profilingEnabled: true
+
+  splunkPlatform:
+    endpoint: ""
+    token: ""
+    logsEnabled: true
+    metricsEnabled: false
+    tracesEnabled: false
+
+  secret:
+    create: false
+    name: "signalfx-otel-credentials"
 
   gateway:
     enabled: false
