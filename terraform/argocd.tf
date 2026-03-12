@@ -39,6 +39,22 @@ resource "kubernetes_namespace_v1" "signalfx_otel" {
   }
 }
 
+resource "kubernetes_secret_v1" "signalfx_otel_credentials" {
+  count = var.signalfx_otel_enabled ? 1 : 0
+
+  metadata {
+    name      = var.signalfx_otel_secret_name
+    namespace = kubernetes_namespace_v1.signalfx_otel[0].metadata[0].name
+  }
+
+  type = "Opaque"
+
+  data = {
+    splunk_observability_access_token = var.signalfx_observability_access_token
+    splunk_platform_hec_token         = var.signalfx_platform_hec_token
+  }
+}
+
 resource "kubernetes_storage_class_v1" "gp3" {
   metadata {
     name = "gp3"
@@ -117,13 +133,14 @@ locals {
   })
 
   argocd_signalfx_otel_application_manifest = templatefile("${path.module}/templates/argocd-signalfx-otel-application.yaml.tftpl", {
-    argocd_namespace                    = var.argocd_namespace
-    gitops_repository_url               = var.gitops_repository_url
-    gitops_repository_branch            = var.gitops_repository_branch
-    signalfx_otel_namespace             = var.signalfx_otel_namespace
-    signalfx_cluster_name               = module.eks.cluster_name
-    signalfx_observability_realm        = var.signalfx_observability_realm
-    signalfx_observability_access_token = var.signalfx_observability_access_token
+    argocd_namespace             = var.argocd_namespace
+    gitops_repository_url        = var.gitops_repository_url
+    gitops_repository_branch     = var.gitops_repository_branch
+    signalfx_otel_namespace      = var.signalfx_otel_namespace
+    signalfx_otel_secret_name    = var.signalfx_otel_secret_name
+    signalfx_otel_cluster_name   = var.signalfx_otel_cluster_name
+    signalfx_observability_realm = var.signalfx_observability_realm
+    signalfx_platform_endpoint   = var.signalfx_platform_endpoint
   })
 
   argocd_bootstrap_manifest = join(
@@ -158,6 +175,7 @@ resource "null_resource" "argocd_bootstrap" {
     helm_release.aws_load_balancer_controller,
     kubernetes_namespace_v1.spa_demo,
     kubernetes_namespace_v1.signalfx_otel,
+    kubernetes_secret_v1.signalfx_otel_credentials,
     kubernetes_secret_v1.spa_demo_db,
     kubernetes_storage_class_v1.gp3,
     aws_db_instance.spa_demo,
