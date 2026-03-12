@@ -4,7 +4,7 @@ EKS infrastructure, Flux bootstrap, and an EKS-compatible GitOps workload set.
 
 ## Repository Layout
 
-- `*.tf`: AWS infrastructure, cluster bootstrap, IAM, and storage.
+- `terraform/`: AWS infrastructure, cluster bootstrap, IAM, storage, and Terraform inputs.
 - `kubernetes/flux`: Flux sources and app-of-apps definitions.
 - `kubernetes/apps/kube-system`: EKS platform add-ons and storage primitives.
 - `kubernetes/apps/monitoring`: Splunk OpenTelemetry deployment with overlayable values.
@@ -23,6 +23,7 @@ EKS infrastructure, Flux bootstrap, and an EKS-compatible GitOps workload set.
 ## Apply Flow
 
 ```bash
+cd terraform
 cp terraform.tfvars.example terraform.tfvars
 terraform init
 terraform apply
