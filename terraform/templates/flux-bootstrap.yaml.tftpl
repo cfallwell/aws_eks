@@ -4,16 +4,15 @@ metadata:
   name: cluster-settings
   namespace: flux-system
 data:
-  aws_region: ${aws_region}
-  cluster_name: ${cluster_name}
-  spa_demo_host: ${spa_demo_host}
-  spa_demo_storage_size: ${spa_demo_storage_size}
-  spa_demo_s3_bucket_name: ${spa_demo_s3_bucket_name}
-  spa_demo_s3_role_arn: ${spa_demo_s3_role_arn}
-  aws_load_balancer_controller_role_arn: ${aws_load_balancer_controller_role_arn}
-  splunk_otel_cluster_name: ${splunk_otel_cluster_name}
-  splunk_otel_suspend: ${splunk_otel_suspend}
-  splunk_observability_realm: ${splunk_observability_realm}
+  aws_region: "${aws_region}"
+  cluster_name: "${cluster_name}"
+  spa_demo_host: "${spa_demo_host}"
+  spa_demo_storage_size: "${spa_demo_storage_size}"
+  spa_demo_s3_bucket_name: "${spa_demo_s3_bucket_name}"
+  spa_demo_s3_role_arn: "${spa_demo_s3_role_arn}"
+  aws_load_balancer_controller_role_arn: "${aws_load_balancer_controller_role_arn}"
+  splunk_otel_cluster_name: "${splunk_otel_cluster_name}"
+  splunk_observability_realm: "${splunk_observability_realm}"
 ---
 apiVersion: v1
 kind: Secret
@@ -37,9 +36,9 @@ metadata:
   namespace: flux-system
 spec:
   interval: 1m
-  url: ${flux_repository_url}
+  url: "${flux_repository_url}"
   ref:
-    branch: ${flux_repository_branch}
+    branch: "${flux_repository_branch}"
 ---
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization

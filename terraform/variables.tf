@@ -94,12 +94,6 @@ variable "spa_demo_host" {
   default     = ""
 }
 
-variable "splunk_otel_suspend" {
-  type        = bool
-  description = "Whether to suspend the Splunk OTel HelmRelease until credentials are provided."
-  default     = true
-}
-
 variable "splunk_otel_cluster_name" {
   type        = string
   description = "Cluster label used by Splunk OTel."

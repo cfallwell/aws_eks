@@ -5,7 +5,6 @@ metadata:
   namespace: monitoring
 spec:
   interval: 30m
-  suspend: ${splunk_otel_suspend}
   chart:
     spec:
       chart: splunk-otel-collector
