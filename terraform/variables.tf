@@ -28,6 +28,12 @@ variable "az_count" {
   default     = 3
 }
 
+variable "enable_private_aws_api_endpoints" {
+  type        = bool
+  description = "Whether to create private interface VPC endpoints for AWS APIs used by in-cluster controllers."
+  default     = true
+}
+
 variable "public_access_cidrs" {
   type        = list(string)
   description = "CIDR blocks allowed to access the EKS public API endpoint."

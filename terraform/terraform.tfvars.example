@@ -7,6 +7,7 @@ name   = "awseks"
 kubernetes_version  = "1.33"
 vpc_cidr            = "10.0.0.0/16"
 az_count            = 3
+enable_private_aws_api_endpoints = true
 public_access_cidrs = ["0.0.0.0/0"]
 
 node_instance_types = ["m6i.large"]
