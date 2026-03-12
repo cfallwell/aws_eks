@@ -88,6 +88,31 @@ variable "argocd_chart_version" {
   default     = "9.4.10"
 }
 
+variable "signalfx_otel_enabled" {
+  type        = bool
+  description = "Whether Argo CD should deploy the SignalFx OpenTelemetry collector."
+  default     = false
+}
+
+variable "signalfx_otel_namespace" {
+  type        = string
+  description = "Namespace for the SignalFx OpenTelemetry collector."
+  default     = "monitoring"
+}
+
+variable "signalfx_observability_realm" {
+  type        = string
+  description = "Splunk Observability Cloud realm for the SignalFx OpenTelemetry collector."
+  default     = ""
+}
+
+variable "signalfx_observability_access_token" {
+  type        = string
+  description = "Splunk Observability Cloud access token for the SignalFx OpenTelemetry collector."
+  sensitive   = true
+  default     = ""
+}
+
 variable "spa_demo_s3_bucket_name" {
   type        = string
   description = "Optional explicit bucket name for workload S3 storage."
