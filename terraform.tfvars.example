@@ -1,4 +1,5 @@
-# Copy this file to terraform.tfvars and adjust values for your environment.
+# Copy this file to terraform.tfvars and adjust values for your environment,
+# including setting region to the AWS region where you want to deploy.
 
 region = "us-east-1"
 name   = "awseks"
