@@ -18,18 +18,13 @@ output "kubeconfig_command" {
   value       = "aws eks update-kubeconfig --region ${var.region} --name ${module.eks.cluster_name}"
 }
 
-output "gitops_controller" {
-  description = "GitOps controller configured for this cluster."
-  value       = var.gitops_controller
-}
-
 output "gitops_repository_branch" {
-  description = "Git branch the GitOps controller is configured to reconcile."
-  value       = local.gitops_repository_branch
+  description = "Git branch Argo CD is configured to reconcile."
+  value       = var.gitops_repository_branch
 }
 
 output "argocd_ui_command" {
-  description = "Command to port-forward the Argo CD UI locally when gitops_controller is argocd."
+  description = "Command to port-forward the Argo CD UI locally."
   value       = "kubectl -n ${var.argocd_namespace} port-forward svc/argocd-server 8080:80"
 }
 

@@ -1,0 +1,20 @@
+splunk-otel-collector:
+  distribution: eks
+  cloudProvider: aws
+  clusterName: "replace-me"
+
+  splunkObservability:
+    realm: "us1"
+    accessToken: "replace-me"
+    profilingEnabled: false
+
+  gateway:
+    enabled: false
+
+  agent:
+    resources:
+      requests:
+        cpu: 100m
+        memory: 256Mi
+      limits:
+        memory: 512Mi
