@@ -18,7 +18,6 @@ locals {
     spa_demo_s3_role_arn                  = aws_iam_role.spa_demo_s3.arn
     aws_load_balancer_controller_role_arn = module.aws_load_balancer_controller_irsa.arn
     splunk_otel_cluster_name              = local.splunk_cluster_name
-    splunk_otel_suspend                   = tostring(var.splunk_otel_suspend)
     splunk_observability_realm            = var.splunk_observability_realm
     splunk_observability_access_token_b64 = base64encode(var.splunk_observability_access_token)
     splunk_platform_endpoint_b64          = base64encode(var.splunk_platform_endpoint)

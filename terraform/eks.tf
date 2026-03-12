@@ -16,6 +16,24 @@ module "aws_load_balancer_controller_irsa" {
   tags = local.common_tags
 }
 
+module "ebs_csi_driver_irsa" {
+  source  = "terraform-aws-modules/iam/aws//modules/iam-role-for-service-accounts"
+  version = "~> 6.0"
+
+  name                  = "${local.name}-ebs-csi"
+  use_name_prefix       = true
+  attach_ebs_csi_policy = true
+
+  oidc_providers = {
+    main = {
+      provider_arn               = module.eks.oidc_provider_arn
+      namespace_service_accounts = ["kube-system:ebs-csi-controller-sa"]
+    }
+  }
+
+  tags = local.common_tags
+}
+
 module "eks" {
   source  = "terraform-aws-modules/eks/aws"
   version = "~> 21.0"
@@ -43,7 +61,9 @@ module "eks" {
     eks-pod-identity-agent = {
       before_compute = true
     }
-    aws-ebs-csi-driver = {}
+    aws-ebs-csi-driver = {
+      service_account_role_arn = module.ebs_csi_driver_irsa.arn
+    }
   }
 
   create_kms_key = true
@@ -59,8 +79,7 @@ module "eks" {
       desired_size   = var.node_desired_size
 
       iam_role_additional_policies = {
-        ssm     = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
-        ebs_csi = "arn:aws:iam::aws:policy/service-role/AmazonEBSCSIDriverPolicy"
+        ssm = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
       }
     }
   }
