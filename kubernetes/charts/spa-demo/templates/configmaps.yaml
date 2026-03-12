@@ -1,0 +1,41 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: spa-demo-runtime
+  namespace: {{ .Release.Namespace }}
+data:
+  package.json: |
+{{ .Files.Get "files/runtime/package.json" | nindent 4 }}
+  package-lock.json: |
+{{ .Files.Get "files/runtime/package-lock.json" | nindent 4 }}
+  server.js: |
+{{ .Files.Get "files/runtime/server.js" | nindent 4 }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: spa-demo-site
+  namespace: {{ .Release.Namespace }}
+data:
+  index.html: |
+{{ .Files.Get "files/site/index.html" | nindent 4 }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: spa-demo-assets
+  namespace: {{ .Release.Namespace }}
+data:
+  app.js: |
+{{ .Files.Get "files/site/assets/app.js" | nindent 4 }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: spa-demo-images
+  namespace: {{ .Release.Namespace }}
+data:
+{{- range $path, $_ := .Files.Glob "files/site/images/*" }}
+  {{ base $path }}: |
+{{ $.Files.Get $path | nindent 4 }}
+{{- end }}

@@ -1,4 +1,5 @@
 resource "helm_release" "flux" {
+  count            = var.gitops_controller == "flux" ? 1 : 0
   name             = "flux2"
   chart            = "oci://ghcr.io/fluxcd-community/charts/flux2"
   namespace        = "flux-system"
@@ -8,8 +9,8 @@ resource "helm_release" "flux" {
 
 locals {
   flux_bootstrap_manifest = templatefile("${path.module}/templates/flux-bootstrap.yaml.tftpl", {
-    flux_repository_url                   = var.flux_repository_url
-    flux_repository_branch                = var.flux_repository_branch
+    flux_repository_url                   = local.gitops_repository_url
+    flux_repository_branch                = local.gitops_repository_branch
     aws_region                            = var.region
     cluster_name                          = module.eks.cluster_name
     spa_demo_host                         = var.spa_demo_host
@@ -30,6 +31,8 @@ locals {
 }
 
 resource "null_resource" "flux_bootstrap" {
+  count = var.gitops_controller == "flux" ? 1 : 0
+
   triggers = {
     manifest_sha = sha256(local.flux_bootstrap_manifest)
     cluster_name = module.eks.cluster_name

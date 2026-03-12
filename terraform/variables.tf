@@ -66,14 +66,49 @@ variable "tags" {
 
 variable "flux_repository_url" {
   type        = string
-  description = "Repository URL Flux should reconcile."
+  description = "Deprecated: repository URL Flux should reconcile. Use gitops_repository_url."
   default     = "https://github.com/cfallwell/aws_eks.git"
 }
 
 variable "flux_repository_branch" {
   type        = string
-  description = "Repository branch Flux should reconcile."
+  description = "Deprecated: repository branch Flux should reconcile. Use gitops_repository_branch."
   default     = "main"
+}
+
+variable "gitops_controller" {
+  type        = string
+  description = "GitOps controller to bootstrap into the cluster. Supported values: argocd, flux."
+  default     = "argocd"
+
+  validation {
+    condition     = contains(["argocd", "flux"], var.gitops_controller)
+    error_message = "gitops_controller must be either \"argocd\" or \"flux\"."
+  }
+}
+
+variable "gitops_repository_url" {
+  type        = string
+  description = "Repository URL the GitOps controller should reconcile. Falls back to flux_repository_url when empty."
+  default     = ""
+}
+
+variable "gitops_repository_branch" {
+  type        = string
+  description = "Repository branch the GitOps controller should reconcile. Falls back to flux_repository_branch when empty."
+  default     = ""
+}
+
+variable "argocd_namespace" {
+  type        = string
+  description = "Namespace used for the Argo CD control plane."
+  default     = "argocd"
+}
+
+variable "argocd_chart_version" {
+  type        = string
+  description = "Version of the Argo CD Helm chart to install."
+  default     = "9.4.10"
 }
 
 variable "spa_demo_s3_bucket_name" {

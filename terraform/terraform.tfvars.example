@@ -18,8 +18,9 @@ tags = {
   owner = "platform"
 }
 
-flux_repository_url    = "https://github.com/cfallwell/aws_eks.git"
-flux_repository_branch = "main"
+gitops_controller      = "argocd"
+gitops_repository_url  = "https://github.com/cfallwell/aws_eks.git"
+gitops_repository_branch = "main"
 
 spa_demo_s3_bucket_name = ""
 spa_demo_storage_size   = "20Gi"
