@@ -18,19 +18,12 @@ tags = {
   owner = "platform"
 }
 
-gitops_controller      = "argocd"
-gitops_repository_url  = "https://github.com/cfallwell/aws_eks.git"
+gitops_repository_url    = "https://github.com/cfallwell/aws_eks.git"
 gitops_repository_branch = "main"
 
 spa_demo_s3_bucket_name = ""
 spa_demo_storage_size   = "20Gi"
 spa_demo_host           = ""
-
-splunk_otel_cluster_name            = ""
-splunk_observability_realm          = ""
-splunk_observability_access_token   = ""
-splunk_platform_endpoint            = ""
-splunk_platform_token               = ""
 
 spa_demo_db_name              = "spademo"
 spa_demo_db_username          = "spademo"

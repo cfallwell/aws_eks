@@ -1,0 +1,43 @@
+{
+  "$schema": "https://json-schema.org/draft-07/schema#",
+  "$id": "https://aws-eks.local/schemas/helm-values.schema.json",
+  "title": "Helm Values",
+  "description": "Permissive schema for Helm values files in this repository.",
+  "type": "object",
+  "additionalProperties": {
+    "$ref": "#/definitions/value"
+  },
+  "definitions": {
+    "value": {
+      "anyOf": [
+        {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/definitions/value"
+          }
+        },
+        {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/value"
+          }
+        },
+        {
+          "type": "string"
+        },
+        {
+          "type": "number"
+        },
+        {
+          "type": "integer"
+        },
+        {
+          "type": "boolean"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    }
+  }
+}

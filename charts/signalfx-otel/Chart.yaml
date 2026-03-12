@@ -1,0 +1,10 @@
+apiVersion: v2
+name: signalfx-otel
+description: Wrapper chart for Splunk's SignalFx OpenTelemetry Collector on EKS.
+type: application
+version: 0.1.0
+appVersion: "0.134.0"
+dependencies:
+  - name: splunk-otel-collector
+    version: 0.134.0
+    repository: https://signalfx.github.io/splunk-otel-collector-chart

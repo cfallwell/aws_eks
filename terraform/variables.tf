@@ -64,39 +64,16 @@ variable "tags" {
   default     = {}
 }
 
-variable "flux_repository_url" {
-  type        = string
-  description = "Deprecated: repository URL Flux should reconcile. Use gitops_repository_url."
-  default     = "https://github.com/cfallwell/aws_eks.git"
-}
-
-variable "flux_repository_branch" {
-  type        = string
-  description = "Deprecated: repository branch Flux should reconcile. Use gitops_repository_branch."
-  default     = "main"
-}
-
-variable "gitops_controller" {
-  type        = string
-  description = "GitOps controller to bootstrap into the cluster. Supported values: argocd, flux."
-  default     = "argocd"
-
-  validation {
-    condition     = contains(["argocd", "flux"], var.gitops_controller)
-    error_message = "gitops_controller must be either \"argocd\" or \"flux\"."
-  }
-}
-
 variable "gitops_repository_url" {
   type        = string
-  description = "Repository URL the GitOps controller should reconcile. Falls back to flux_repository_url when empty."
-  default     = ""
+  description = "Repository URL Argo CD should reconcile."
+  default     = "https://github.com/cfallwell/aws_eks.git"
 }
 
 variable "gitops_repository_branch" {
   type        = string
-  description = "Repository branch the GitOps controller should reconcile. Falls back to flux_repository_branch when empty."
-  default     = ""
+  description = "Repository branch Argo CD should reconcile."
+  default     = "main"
 }
 
 variable "argocd_namespace" {
@@ -126,38 +103,6 @@ variable "spa_demo_storage_size" {
 variable "spa_demo_host" {
   type        = string
   description = "Optional DNS host for the spa-demo ALB ingress."
-  default     = ""
-}
-
-variable "splunk_otel_cluster_name" {
-  type        = string
-  description = "Cluster label used by Splunk OTel."
-  default     = ""
-}
-
-variable "splunk_observability_realm" {
-  type        = string
-  description = "Splunk Observability realm."
-  default     = ""
-}
-
-variable "splunk_observability_access_token" {
-  type        = string
-  description = "Splunk Observability access token."
-  sensitive   = true
-  default     = ""
-}
-
-variable "splunk_platform_endpoint" {
-  type        = string
-  description = "Optional Splunk platform HEC endpoint."
-  default     = ""
-}
-
-variable "splunk_platform_token" {
-  type        = string
-  description = "Optional Splunk platform HEC token."
-  sensitive   = true
   default     = ""
 }
 

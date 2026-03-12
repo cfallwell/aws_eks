@@ -1,0 +1,11 @@
+{
+  "yaml.schemas": {
+    "https://json.schemastore.org/chart.json": [
+      "charts/*/Chart.yaml"
+    ],
+    "./.vscode/schemas/helm-values.schema.json": [
+      "charts/*/values.yaml",
+      "charts/*/overlays/*/values.yaml"
+    ]
+  }
+}

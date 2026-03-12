@@ -1,5 +1,4 @@
 resource "helm_release" "argocd" {
-  count            = var.gitops_controller == "argocd" ? 1 : 0
   name             = "argocd"
   repository       = "https://argoproj.github.io/argo-helm"
   chart            = "argo-cd"
@@ -27,16 +26,12 @@ resource "helm_release" "argocd" {
 }
 
 resource "kubernetes_namespace_v1" "spa_demo" {
-  count = var.gitops_controller == "argocd" ? 1 : 0
-
   metadata {
     name = "spa-demo"
   }
 }
 
 resource "kubernetes_storage_class_v1" "gp3" {
-  count = var.gitops_controller == "argocd" ? 1 : 0
-
   metadata {
     name = "gp3"
 
@@ -58,11 +53,9 @@ resource "kubernetes_storage_class_v1" "gp3" {
 }
 
 resource "kubernetes_secret_v1" "spa_demo_db" {
-  count = var.gitops_controller == "argocd" ? 1 : 0
-
   metadata {
     name      = "spa-demo-db"
-    namespace = kubernetes_namespace_v1.spa_demo[0].metadata[0].name
+    namespace = kubernetes_namespace_v1.spa_demo.metadata[0].name
   }
 
   type = "Opaque"
@@ -79,7 +72,6 @@ resource "kubernetes_secret_v1" "spa_demo_db" {
 }
 
 resource "helm_release" "aws_load_balancer_controller" {
-  count            = var.gitops_controller == "argocd" ? 1 : 0
   name             = "aws-load-balancer-controller"
   repository       = "https://aws.github.io/eks-charts"
   chart            = "aws-load-balancer-controller"
@@ -107,8 +99,8 @@ resource "helm_release" "aws_load_balancer_controller" {
 locals {
   argocd_spa_demo_application_manifest = templatefile("${path.module}/templates/argocd-spa-demo-application.yaml.tftpl", {
     argocd_namespace         = var.argocd_namespace
-    gitops_repository_url    = local.gitops_repository_url
-    gitops_repository_branch = local.gitops_repository_branch
+    gitops_repository_url    = var.gitops_repository_url
+    gitops_repository_branch = var.gitops_repository_branch
     spa_demo_host            = var.spa_demo_host
     spa_demo_storage_size    = var.spa_demo_storage_size
     spa_demo_s3_bucket_name  = aws_s3_bucket.spa_demo.bucket
@@ -117,8 +109,6 @@ locals {
 }
 
 resource "null_resource" "argocd_bootstrap" {
-  count = var.gitops_controller == "argocd" ? 1 : 0
-
   triggers = {
     manifest_sha = sha256(local.argocd_spa_demo_application_manifest)
     cluster_name = module.eks.cluster_name

@@ -1,0 +1,31 @@
+{
+  "name": "spa-demo",
+  "version": "1.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build && esbuild server/index.ts --platform=node --format=esm --outfile=dist/server.js && npm run sync-dist",
+    "sync-dist": "mkdir -p ../../charts/spa-demo/files/runtime ../../charts/spa-demo/files/site/assets ../../charts/spa-demo/files/site/images && cp package.json ../../charts/spa-demo/files/runtime/package.json && cp package-lock.json ../../charts/spa-demo/files/runtime/package-lock.json && cp dist/server.js ../../charts/spa-demo/files/runtime/server.js && cp dist/index.html ../../charts/spa-demo/files/site/index.html && cp dist/assets/app.js ../../charts/spa-demo/files/site/assets/app.js && cp dist/images/*.svg ../../charts/spa-demo/files/site/images/",
+    "preview": "vite preview",
+    "lint": "tsc --noEmit && tsc --project tsconfig.server.json --noEmit",
+    "start": "node dist/server.js"
+  },
+  "dependencies": {
+    "express": "^4.21.2",
+    "pg": "^8.13.3",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-router-dom": "^6.30.0"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.1",
+    "@types/node": "^22.13.10",
+    "@types/pg": "^8.11.11",
+    "@types/react": "^18.3.18",
+    "@types/react-dom": "^18.3.5",
+    "@vitejs/plugin-react": "^4.3.4",
+    "esbuild": "^0.25.1",
+    "typescript": "^5.8.2",
+    "vite": "^5.4.14"
+  }
+}

@@ -1,22 +1,14 @@
-# Argo CD Migration Runbook
+# Argo CD Runbook
 
-This repository now defaults to `Argo CD + Helm` for application delivery into EKS. The migration in this branch is intentionally staged.
+This repository now uses `Argo CD + Helm` for application delivery into EKS.
 
-## What This Branch Automates
+## What This Repository Automates
 
 - Installs Argo CD with Terraform.
 - Installs the AWS Load Balancer Controller with Terraform.
 - Creates the `gp3` `StorageClass` with Terraform.
 - Creates the `spa-demo` namespace and `spa-demo-db` secret with Terraform.
-- Bootstraps an Argo CD `Application` that deploys `spa-demo` from `kubernetes/charts/spa-demo`.
-
-## What Is Still Legacy
-
-- `kubernetes/flux/**`
-- Flux `HelmRelease`, `GitRepository`, and `Kustomization` objects under `kubernetes/apps/**`
-- Monitoring and other platform add-ons that still depend on Flux CRDs
-
-Do not remove Flux from a live cluster until those remaining workloads are migrated.
+- Bootstraps an Argo CD `Application` that deploys `spa-demo` from `charts/spa-demo`.
 
 ## Prerequisites
 
@@ -50,7 +42,6 @@ Set at minimum:
 - `gitops_repository_url`
 - `gitops_repository_branch`
 - `spa_demo_host` if you want a DNS host on the ALB ingress
-- Splunk variables only if you still plan to migrate those monitoring components later
 
 3. Initialize and apply Terraform.
 
@@ -96,42 +87,7 @@ The current chart packages the `spa-demo` runtime and static files directly from
 
 When you change the app:
 
-1. Update the assets under `kubernetes/apps/spa-demo/deploy/base`.
-2. Copy the updated runtime and site payload into `kubernetes/charts/spa-demo/files`.
+1. Update the source under `apps/spa-demo`.
+2. Run `npm run build` from `apps/spa-demo` to refresh the chart payload in `charts/spa-demo/files`.
 3. Commit and push the branch Argo CD is watching.
 4. Let Argo CD sync automatically or trigger a manual sync in the UI.
-
-## Remaining Migration Work
-
-Migrate the remaining Flux-managed add-ons in this order:
-
-1. Convert each Flux `HelmRelease` to either a Terraform `helm_release` or an Argo CD `Application`.
-2. Replace Flux `Kustomization` resources with Argo CD `Application` or `ApplicationSet` objects.
-3. Move cluster-specific secrets out of Git and into AWS Secrets Manager plus External Secrets.
-4. Remove Flux bootstrap from Terraform only after every Flux CRD-backed workload is gone.
-
-## Final Flux Removal
-
-Only perform these steps after you have migrated every remaining Flux-managed workload:
-
-1. Set `gitops_controller = "argocd"` in `terraform.tfvars`.
-2. Remove or archive the remaining `kubernetes/flux` content.
-3. Delete Flux resources from the cluster.
-
-```bash
-kubectl delete namespace flux-system --ignore-not-found
-kubectl get crd | grep fluxcd.io
-```
-
-4. Re-run Terraform to confirm Flux is no longer managed.
-
-```bash
-terraform apply
-```
-
-5. Confirm no Flux CRDs or workloads remain.
-
-```bash
-kubectl get applications -n argocd
-kubectl get all -A | grep flux
-```
