@@ -1,0 +1,21 @@
+metrics-server:
+  replicas: 2
+
+  apiService:
+    create: true
+    insecureSkipTLSVerify: true
+
+  defaultArgs:
+    - --cert-dir=/tmp
+    - --kubelet-preferred-address-types=InternalIP,ExternalIP,Hostname
+    - --kubelet-use-node-status-port
+    - --metric-resolution=15s
+
+  resources:
+    requests:
+      cpu: 100m
+      memory: 200Mi
+
+  podDisruptionBudget:
+    enabled: true
+    maxUnavailable: 1
