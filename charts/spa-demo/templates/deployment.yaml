@@ -23,7 +23,7 @@ spec:
             - -ec
             - |
               mkdir -p /workspace/dist/assets /workspace/dist/images
-              cp /config/runtime/server.js /workspace/server.js
+              cat /config/runtime/server.js.part.* > /workspace/server.js
               cp /config/site/index.html /workspace/dist/index.html
               cp /config/assets/app.js /workspace/dist/assets/app.js
               cp /config/images/product-*.svg /workspace/dist/images/
@@ -73,8 +73,16 @@ spec:
         - name: app-runtime
           emptyDir: {}
         - name: spa-demo-runtime
-          configMap:
-            name: spa-demo-runtime
+          projected:
+            sources:
+              - configMap:
+                  name: spa-demo-runtime-000
+{{- range $path, $_ := .Files.Glob "files/runtime/server.js.part.*" }}
+{{- if ne (base $path) "server.js.part.000" }}
+              - configMap:
+                  name: spa-demo-runtime-{{ trimPrefix "server.js.part." (base $path) }}
+{{- end }}
+{{- end }}
         - name: spa-demo-site
           configMap:
             name: spa-demo-site
