@@ -1,0 +1,323 @@
+aRow",this._handleDataRow.bind(this)),e.on("portalSuspended",this._handlePortalSuspended.bind(this)),e.on("emptyQuery",this._handleEmptyQuery.bind(this)),e.on("commandComplete",this._handleCommandComplete.bind(this)),e.on("parseComplete",this._handleParseComplete.bind(this)),e.on("copyInResponse",this._handleCopyInResponse.bind(this)),e.on("copyData",this._handleCopyData.bind(this)),e.on("notification",this._handleNotification.bind(this))}_getPassword(e){let a=this.connection;if(typeof this.password=="function")this._Promise.resolve().then(()=>this.password(this.connectionParameters)).then(n=>{if(n!==void 0){if(typeof n!="string"){a.emit("error",new TypeError("Password must be a string"));return}this.connectionParameters.password=this.password=n}else this.connectionParameters.password=this.password=null;e()}).catch(n=>{a.emit("error",n)});else if(this.password!==null)e();else try{fx()(this.connectionParameters,i=>{i!==void 0&&(Kk(),this.connectionParameters.password=this.password=i),e()})}catch(n){this.emit("error",n)}}_handleAuthCleartextPassword(e){this._getPassword(()=>{this.connection.password(this.password)})}_handleAuthMD5Password(e){this._getPassword(async()=>{try{let a=await Vk.postgresMd5PasswordHash(this.user,this.password,e.salt);this.connection.password(a)}catch(a){this.emit("error",a)}})}_handleAuthSASL(e){this._getPassword(()=>{try{this.saslSession=ec.startSession(e.mechanisms,this.enableChannelBinding&&this.connection.stream),this.connection.sendSASLInitialResponseMessage(this.saslSession.mechanism,this.saslSession.response)}catch(a){this.connection.emit("error",a)}})}async _handleAuthSASLContinue(e){try{await ec.continueSession(this.saslSession,this.password,e.data,this.enableChannelBinding&&this.connection.stream),this.connection.sendSCRAMClientFinalMessage(this.saslSession.response)}catch(a){this.connection.emit("error",a)}}_handleAuthSASLFinal(e){try{ec.finalizeSession(this.saslSession,e.data),this.saslSession=null}catch(a){this.connection.emit("error",a)}}_handleBackendKeyData(e){this.processID=e.processID,this.secretKey=e.secretKey}_handleReadyForQuery(e){this._connecting&&(this._connecting=!1,this._connected=!0,clearTimeout(this.connectionTimeoutHandle),this._connectionCallback&&(this._connectionCallback(null,this),this._connectionCallback=null),this.emit("connect"));let a=this._getActiveQuery();this._activeQuery=null,this.readyForQuery=!0,a&&a.handleReadyForQuery(this.connection),this._pulseQueryQueue()}_handleErrorWhileConnecting(e){if(!this._connectionError){if(this._connectionError=!0,clearTimeout(this.connectionTimeoutHandle),this._connectionCallback)return this._connectionCallback(e);this.emit("error",e)}}_handleErrorEvent(e){if(this._connecting)return this._handleErrorWhileConnecting(e);this._queryable=!1,this._errorAllQueries(e),this.emit("error",e)}_handleErrorMessage(e){if(this._connecting)return this._handleErrorWhileConnecting(e);let a=this._getActiveQuery();if(!a){this._handleErrorEvent(e);return}this._activeQuery=null,a.handleError(e,this.connection)}_handleRowDescription(e){let a=this._getActiveQuery();if(a==null){let n=new Error("Received unexpected rowDescription message from backend.");this._handleErrorEvent(n);return}a.handleRowDescription(e)}_handleDataRow(e){let a=this._getActiveQuery();if(a==null){let n=new Error("Received unexpected dataRow message from backend.");this._handleErrorEvent(n);return}a.handleDataRow(e)}_handlePortalSuspended(e){let a=this._getActiveQuery();if(a==null){let n=new Error("Received unexpected portalSuspended message from backend.");this._handleErrorEvent(n);return}a.handlePortalSuspended(this.connection)}_handleEmptyQuery(e){let a=this._getActiveQuery();if(a==null){let n=new Error("Received unexpected emptyQuery message from backend.");this._handleErrorEvent(n);return}a.handleEmptyQuery(this.connection)}_handleCommandComplete(e){let a=this._getActiveQuery();if(a==null){let n=new Error("Received unexpected commandComplete message from backend.");this._handleErrorEvent(n);return}a.handleCommandComplete(e,this.connection)}_handleParseComplete(){let e=this._getActiveQuery();if(e==null){let a=new Error("Received unexpected parseComplete message from backend.");this._handleErrorEvent(a);return}e.name&&(this.connection.parsedStatements[e.name]=e.text)}_handleCopyInResponse(e){let a=this._getActiveQuery();if(a==null){let n=new Error("Received unexpected copyInResponse message from backend.");this._handleErrorEvent(n);return}a.handleCopyInResponse(this.connection)}_handleCopyData(e){let a=this._getActiveQuery();if(a==null){let n=new Error("Received unexpected copyData message from backend.");this._handleErrorEvent(n);return}a.handleCopyData(e,this.connection)}_handleNotification(e){this.emit("notification",e)}_handleNotice(e){this.emit("notice",e)}getStartupConf(){let e=this.connectionParameters,a={user:e.user,database:e.database},n=e.application_name||e.fallback_application_name;return n&&(a.application_name=n),e.replication&&(a.replication=""+e.replication),e.statement_timeout&&(a.statement_timeout=String(parseInt(e.statement_timeout,10))),e.lock_timeout&&(a.lock_timeout=String(parseInt(e.lock_timeout,10))),e.idle_in_transaction_session_timeout&&(a.idle_in_transaction_session_timeout=String(parseInt(e.idle_in_transaction_session_timeout,10))),e.options&&(a.options=e.options),a}cancel(e,a){if(e.activeQuery===a){let n=this.connection;this.host&&this.host.indexOf("/")===0?n.connect(this.host+"/.s.PGSQL."+this.port):n.connect(this.port,this.host),n.on("connect",function(){n.cancel(e.processID,e.secretKey)})}else e._queryQueue.indexOf(a)!==-1&&e._queryQueue.splice(e._queryQueue.indexOf(a),1)}setTypeParser(e,a,n){return this._types.setTypeParser(e,a,n)}getTypeParser(e,a){return this._types.getTypeParser(e,a)}escapeIdentifier(e){return mx.escapeIdentifier(e)}escapeLiteral(e){return mx.escapeLiteral(e)}_pulseQueryQueue(){if(this.readyForQuery===!0){this._activeQuery=this._queryQueue.shift();let e=this._getActiveQuery();if(e){this.readyForQuery=!1,this.hasExecuted=!0;let a=e.submit(this.connection);a&&process.nextTick(()=>{e.handleError(a,this.connection),this.readyForQuery=!0,this._pulseQueryQueue()})}else this.hasExecuted&&(this._activeQuery=null,this.emit("drain"))}}query(e,a,n){let i,r,s,o,p;if(e==null)throw new TypeError("Client was passed a null or undefined query");return typeof e.submit=="function"?(s=e.query_timeout||this.connectionParameters.query_timeout,r=i=e,i.callback||(typeof a=="function"?i.callback=a:n&&(i.callback=n))):(s=e.query_timeout||this.connectionParameters.query_timeout,i=new vx(e,a,n),i.callback||(r=new this._Promise((c,u)=>{i.callback=(l,d)=>l?u(l):c(d)}).catch(c=>{throw Error.captureStackTrace(c),c}))),s&&(p=i.callback||(()=>{}),o=setTimeout(()=>{let c=new Error("Query read timeout");process.nextTick(()=>{i.handleError(c,this.connection)}),p(c),i.callback=()=>{};let u=this._queryQueue.indexOf(i);u>-1&&this._queryQueue.splice(u,1),this._pulseQueryQueue()},s),i.callback=(c,u)=>{clearTimeout(o),p(c,u)}),this.binary&&!i.binary&&(i.binary=!0),i._result&&!i._result._types&&(i._result._types=this._types),this._queryable?this._ending?(process.nextTick(()=>{i.handleError(new Error("Client was closed and is not queryable"),this.connection)}),r):(this._queryQueue.length>0&&Yk(),this._queryQueue.push(i),this._pulseQueryQueue(),r):(process.nextTick(()=>{i.handleError(new Error("Client has encountered a connection error and is not queryable"),this.connection)}),r)}ref(){this.connection.ref()}unref(){this.connection.unref()}end(e){if(this._ending=!0,!this.connection._connecting||this._ended)if(e)e();else return this._Promise.resolve();if(this._getActiveQuery()||!this._queryable?this.connection.stream.destroy():this.connection.end(),e)this.connection.once("end",e);else return new this._Promise(a=>{this.connection.once("end",a)})}get queryQueue(){return Xk(),this._queryQueue}};Mi.Query=vx;xx.exports=Mi});var wx=f((DC,bx)=>{"use strict";var Jk=require("events").EventEmitter,tc=function(){},yx=(t,e)=>{let a=t.findIndex(e);return a===-1?void 0:t.splice(a,1)[0]},ac=class{constructor(e,a,n){this.client=e,this.idleListener=a,this.timeoutId=n}},Jt=class{constructor(e){this.callback=e}};function e_(){throw new Error("Release called on client which has already been released to the pool.")}function Li(t,e){if(e)return{callback:e,result:void 0};let a,n,i=function(s,o){s?a(s):n(o)},r=new t(function(s,o){n=s,a=o}).catch(s=>{throw Error.captureStackTrace(s),s});return{callback:i,result:r}}function t_(t,e){return function a(n){n.client=e,e.removeListener("error",a),e.on("error",()=>{t.log("additional client error after disconnection due to error",n)}),t._remove(e),t.emit("error",n,e)}}var nc=class extends Jk{constructor(e,a){super(),this.options=Object.assign({},e),e!=null&&"password"in e&&Object.defineProperty(this.options,"password",{configurable:!0,enumerable:!1,writable:!0,value:e.password}),e!=null&&e.ssl&&e.ssl.key&&Object.defineProperty(this.options.ssl,"key",{enumerable:!1}),this.options.max=this.options.max||this.options.poolSize||10,this.options.min=this.options.min||0,this.options.maxUses=this.options.maxUses||1/0,this.options.allowExitOnIdle=this.options.allowExitOnIdle||!1,this.options.maxLifetimeSeconds=this.options.maxLifetimeSeconds||0,this.log=this.options.log||function(){},this.Client=this.options.Client||a||ic().Client,this.Promise=this.options.Promise||global.Promise,typeof this.options.idleTimeoutMillis>"u"&&(this.options.idleTimeoutMillis=1e4),this._clients=[],this._idle=[],this._expired=new WeakSet,this._pendingQueue=[],this._endCallback=void 0,this.ending=!1,this.ended=!1}_promiseTry(e){let a=this.Promise;return typeof a.try=="function"?a.try(e):new a(n=>n(e()))}_isFull(){return this._clients.length>=this.options.max}_isAboveMin(){return this._clients.length>this.options.min}_pulseQueue(){if(this.log("pulse queue"),this.ended){this.log("pulse queue ended");return}if(this.ending){this.log("pulse queue on ending"),this._idle.length&&this._idle.slice().map(a=>{this._remove(a.client)}),this._clients.length||(this.ended=!0,this._endCallback());return}if(!this._pendingQueue.length){this.log("no queued requests");return}if(!this._idle.length&&this._isFull())return;let e=this._pendingQueue.shift();if(this._idle.length){let a=this._idle.pop();clearTimeout(a.timeoutId);let n=a.client;n.ref&&n.ref();let i=a.idleListener;return this._acquireClient(n,e,i,!1)}if(!this._isFull())return this.newClient(e);throw new Error("unexpected condition")}_remove(e,a){let n=yx(this._idle,r=>r.client===e);n!==void 0&&clearTimeout(n.timeoutId),this._clients=this._clients.filter(r=>r!==e);let i=this;e.end(()=>{i.emit("remove",e),typeof a=="function"&&a()})}connect(e){if(this.ending){let i=new Error("Cannot use a pool after calling end on the pool");return e?e(i):this.Promise.reject(i)}let a=Li(this.Promise,e),n=a.result;if(this._isFull()||this._idle.length){if(this._idle.length&&process.nextTick(()=>this._pulseQueue()),!this.options.connectionTimeoutMillis)return this._pendingQueue.push(new Jt(a.callback)),n;let i=(o,p,c)=>{clearTimeout(s),a.callback(o,p,c)},r=new Jt(i),s=setTimeout(()=>{yx(this._pendingQueue,o=>o.callback===i),r.timedOut=!0,a.callback(new Error("timeout exceeded when trying to connect"))},this.options.connectionTimeoutMillis);return s.unref&&s.unref(),this._pendingQueue.push(r),n}return this.newClient(new Jt(a.callback)),n}newClient(e){let a=new this.Client(this.options);this._clients.push(a);let n=t_(this,a);this.log("checking client timeout");let i,r=!1;this.options.connectionTimeoutMillis&&(i=setTimeout(()=>{a.connection?(this.log("ending client due to timeout"),r=!0,a.connection.stream.destroy()):a.isConnected()||(this.log("ending client due to timeout"),r=!0,a.end())},this.options.connectionTimeoutMillis)),this.log("connecting new client"),a.connect(s=>{if(i&&clearTimeout(i),a.on("error",n),s)this.log("client failed to connect",s),this._clients=this._clients.filter(o=>o!==a),r&&(s=new Error("Connection terminated due to connection timeout",{cause:s})),this._pulseQueue(),e.timedOut||e.callback(s,void 0,tc);else{if(this.log("new client connected"),this.options.onConnect){this._promiseTry(()=>this.options.onConnect(a)).then(()=>{this._afterConnect(a,e,n)},o=>{this._clients=this._clients.filter(p=>p!==a),a.end(()=>{this._pulseQueue(),e.timedOut||e.callback(o,void 0,tc)})});return}return this._afterConnect(a,e,n)}})}_afterConnect(e,a,n){if(this.options.maxLifetimeSeconds!==0){let i=setTimeout(()=>{this.log("ending client due to expired lifetime"),this._expired.add(e),this._idle.findIndex(s=>s.client===e)!==-1&&this._acquireClient(e,new Jt((s,o,p)=>p()),n,!1)},this.options.maxLifetimeSeconds*1e3);i.unref(),e.once("end",()=>clearTimeout(i))}return this._acquireClient(e,a,n,!0)}_acquireClient(e,a,n,i){i&&this.emit("connect",e),this.emit("acquire",e),e.release=this._releaseOnce(e,n),e.removeListener("error",n),a.timedOut?i&&this.options.verify?this.options.verify(e,e.release):e.release():i&&this.options.verify?this.options.verify(e,r=>{if(r)return e.release(r),a.callback(r,void 0,tc);a.callback(void 0,e,e.release)}):a.callback(void 0,e,e.release)}_releaseOnce(e,a){let n=!1;return i=>{n&&e_(),n=!0,this._release(e,a,i)}}_release(e,a,n){if(e.on("error",a),e._poolUseCount=(e._poolUseCount||0)+1,this.emit("release",n,e),n||this.ending||!e._queryable||e._ending||e._poolUseCount>=this.options.maxUses)return e._poolUseCount>=this.options.maxUses&&this.log("remove expended client"),this._remove(e,this._pulseQueue.bind(this));if(this._expired.has(e))return this.log("remove expired client"),this._expired.delete(e),this._remove(e,this._pulseQueue.bind(this));let r;this.options.idleTimeoutMillis&&this._isAboveMin()&&(r=setTimeout(()=>{this._isAboveMin()&&(this.log("remove idle client"),this._remove(e,this._pulseQueue.bind(this)))},this.options.idleTimeoutMillis),this.options.allowExitOnIdle&&r.unref()),this.options.allowExitOnIdle&&e.unref(),this._idle.push(new ac(e,a,r)),this._pulseQueue()}query(e,a,n){if(typeof e=="function"){let r=Li(this.Promise,e);return setImmediate(function(){return r.callback(new Error("Passing a function as the first parameter to pool.query is not supported"))}),r.result}typeof a=="function"&&(n=a,a=void 0);let i=Li(this.Promise,n);return n=i.callback,this.connect((r,s)=>{if(r)return n(r);let o=!1,p=c=>{o||(o=!0,s.release(c),n(c))};s.once("error",p),this.log("dispatching query");try{s.query(e,a,(c,u)=>{if(this.log("query dispatched"),s.removeListener("error",p),!o)return o=!0,s.release(c),c?n(c):n(void 0,u)})}catch(c){return s.release(c),n(c)}}),i.result}end(e){if(this.log("ending"),this.ending){let n=new Error("Called end on pool more than once");return e?e(n):this.Promise.reject(n)}this.ending=!0;let a=Li(this.Promise,e);return this._endCallback=a.callback,this._pulseQueue(),a.result}get waitingCount(){return this._pendingQueue.length}get idleCount(){return this._idle.length}get expiredCount(){return this._clients.reduce((e,a)=>e+(this._expired.has(a)?1:0),0)}get totalCount(){return this._clients.length}};bx.exports=nc});var kx=f((BC,Sx)=>{"use strict";var Ex=require("events").EventEmitter,a_=require("util"),rc=Wt(),ea=Sx.exports=function(t,e,a){Ex.call(this),t=rc.normalizeQueryConfig(t,e,a),this.text=t.text,this.values=t.values,this.name=t.name,this.queryMode=t.queryMode,this.callback=t.callback,this.state="new",this._arrayMode=t.rowMode==="array",this._emitRowEvents=!1,this.on("newListener",function(n){n==="row"&&(this._emitRowEvents=!0)}.bind(this))};a_.inherits(ea,Ex);var n_={sqlState:"code",statementPosition:"position",messagePrimary:"message",context:"where",schemaName:"schema",tableName:"table",columnName:"column",dataTypeName:"dataType",constraintName:"constraint",sourceFile:"file",sourceLine:"line",sourceFunction:"routine"};ea.prototype.handleError=function(t){let e=this.native.pq.resultErrorFields();if(e)for(let a in e){let n=n_[a]||a;t[n]=e[a]}this.callback?this.callback(t):this.emit("error",t),this.state="error"};ea.prototype.then=function(t,e){return this._getPromise().then(t,e)};ea.prototype.catch=function(t){return this._getPromise().catch(t)};ea.prototype._getPromise=function(){return this._promise?this._promise:(this._promise=new Promise(function(t,e){this._once("end",t),this._once("error",e)}.bind(this)),this._promise)};ea.prototype.submit=function(t){this.state="running";let e=this;this.native=t.native,t.native.arrayMode=this._arrayMode;let a=function(n,i,r){if(t.native.arrayMode=!1,setImmediate(function(){e.emit("_done")}),n)return e.handleError(n);e._emitRowEvents&&(r.length>1?i.forEach((s,o)=>{s.forEach(p=>{e.emit("row",p,r[o])})}):i.forEach(function(s){e.emit("row",s,r)})),e.state="end",e.emit("end",r),e.callback&&e.callback(null,r)};if(process.domain&&(a=process.domain.bind(a)),this.name){this.name.length>63&&(console.error("Warning! Postgres only supports 63 characters for query names."),console.error("You supplied %s (%s)",this.name,this.name.length),console.error("This can cause conflicts and silent errors executing queries"));let n=(this.values||[]).map(rc.prepareValue);if(t.namedQueries[this.name]){if(this.text&&t.namedQueries[this.name]!==this.text){let i=new Error(`Prepared statements must be unique - '${this.name}' was used for a different statement`);return a(i)}return t.native.execute(this.name,n,a)}return t.native.prepare(this.name,this.text,n.length,function(i){return i?a(i):(t.namedQueries[e.name]=e.text,e.native.execute(e.name,n,a))})}else if(this.values){if(!Array.isArray(this.values)){let i=new Error("Query values must be an array");return a(i)}let n=this.values.map(rc.prepareValue);t.native.query(this.text,n,a)}else this.queryMode==="extended"?t.native.query(this.text,[],a):t.native.query(this.text,a)}});var Tx=f((FC,qx)=>{var i_=require("util"),_x;try{_x=require("pg-native")}catch(t){throw t}var r_=Ci(),Cx=require("events").EventEmitter,s_=require("util"),o_=wo(),Ax=kx(),c_=i_.deprecate(()=>{},"Calling client.query() when the client is already executing a query is deprecated and will be removed in pg@9.0. Use async/await or an external async flow control mechanism instead."),ae=qx.exports=function(t){Cx.call(this),t=t||{},this._Promise=t.Promise||global.Promise,this._types=new r_(t.types),this.native=new _x({types:this._types}),this._queryQueue=[],this._ending=!1,this._connecting=!1,this._connected=!1,this._queryable=!0;let e=this.connectionParameters=new o_(t);t.nativeConnectionString&&(e.nativeConnectionString=t.nativeConnectionString),this.user=e.user,Object.defineProperty(this,"password",{configurable:!0,enumerable:!1,writable:!0,value:e.password}),this.database=e.database,this.host=e.host,this.port=e.port,this.namedQueries={}};ae.Query=Ax;s_.inherits(ae,Cx);ae.prototype._errorAllQueries=function(t){let e=a=>{process.nextTick(()=>{a.native=this.native,a.handleError(t)})};this._hasActiveQuery()&&(e(this._activeQuery),this._activeQuery=null),this._queryQueue.forEach(e),this._queryQueue.length=0};ae.prototype._connect=function(t){let e=this;if(this._connecting){process.nextTick(()=>t(new Error("Client has already been connected. You cannot reuse a client.")));return}this._connecting=!0,this.connectionParameters.getLibpqConnectionString(function(a,n){if(e.connectionParameters.nativeConnectionString&&(n=e.connectionParameters.nativeConnectionString),a)return t(a);e.native.connect(n,function(i){if(i)return e.native.end(),t(i);e._connected=!0,e.native.on("error",function(r){e._queryable=!1,e._errorAllQueries(r),e.emit("error",r)}),e.native.on("notification",function(r){e.emit("notification",{channel:r.relname,payload:r.extra})}),e.emit("connect"),e._pulseQueryQueue(!0),t(null,this)})})};ae.prototype.connect=function(t){if(t){this._connect(t);return}return new this._Promise((e,a)=>{this._connect(n=>{n?a(n):e(this)})})};ae.prototype.query=function(t,e,a){let n,i,r,s,o;if(t==null)throw new TypeError("Client was passed a null or undefined query");if(typeof t.submit=="function")r=t.query_timeout||this.connectionParameters.query_timeout,i=n=t,typeof e=="function"&&(t.callback=e);else if(r=t.query_timeout||this.connectionParameters.query_timeout,n=new Ax(t,e,a),!n.callback){let p,c;i=new this._Promise((u,l)=>{p=u,c=l}).catch(u=>{throw Error.captureStackTrace(u),u}),n.callback=(u,l)=>u?c(u):p(l)}return r&&(o=n.callback||(()=>{}),s=setTimeout(()=>{let p=new Error("Query read timeout");process.nextTick(()=>{n.handleError(p,this.connection)}),o(p),n.callback=()=>{};let c=this._queryQueue.indexOf(n);c>-1&&this._queryQueue.splice(c,1),this._pulseQueryQueue()},r),n.callback=(p,c)=>{clearTimeout(s),o(p,c)}),this._queryable?this._ending?(n.native=this.native,process.nextTick(()=>{n.handleError(new Error("Client was closed and is not queryable"))}),i):(this._queryQueue.length>0&&c_(),this._queryQueue.push(n),this._pulseQueryQueue(),i):(n.native=this.native,process.nextTick(()=>{n.handleError(new Error("Client has encountered a connection error and is not queryable"))}),i)};ae.prototype.end=function(t){let e=this;this._ending=!0,this._connected||this.once("connect",this.end.bind(this,t));let a;return t||(a=new this._Promise(function(n,i){t=r=>r?i(r):n()})),this.native.end(function(){e._connected=!1,e._errorAllQueries(new Error("Connection terminated")),process.nextTick(()=>{e.emit("end"),t&&t()})}),a};ae.prototype._hasActiveQuery=function(){return this._activeQuery&&this._activeQuery.state!=="error"&&this._activeQuery.state!=="end"};ae.prototype._pulseQueryQueue=function(t){if(!this._connected||this._hasActiveQuery())return;let e=this._queryQueue.shift();if(!e){t||this.emit("drain");return}this._activeQuery=e,e.submit(this);let a=this;e.once("_done",function(){a._pulseQueryQueue()})};ae.prototype.cancel=function(t){this._activeQuery===t?this.native.cancel(function(){}):this._queryQueue.indexOf(t)!==-1&&this._queryQueue.splice(this._queryQueue.indexOf(t),1)};ae.prototype.ref=function(){};ae.prototype.unref=function(){};ae.prototype.setTypeParser=function(t,e,a){return this._types.setTypeParser(t,e,a)};ae.prototype.getTypeParser=function(t,e){return this._types.getTypeParser(t,e)};ae.prototype.isConnected=function(){return this._connected}});var sc=f((NC,Ox)=>{"use strict";Ox.exports=Tx()});var ic=f((UC,Di)=>{"use strict";var p_=gx(),u_=cn(),l_=Ko(),d_=So(),f_=Wt(),m_=wx(),h_=Ci(),{DatabaseError:v_}=Wo(),{escapeIdentifier:x_,escapeLiteral:g_}=Wt(),y_=t=>class extends m_{constructor(a){super(a,t)}},Px=function(t){this.defaults=u_,this.Client=t,this.Query=this.Client.Query,this.Pool=y_(this.Client),this._pools=[],this.Connection=l_,this.types=on(),this.DatabaseError=v_,this.TypeOverrides=h_,this.escapeIdentifier=x_,this.escapeLiteral=g_,this.Result=d_,this.utils=f_},jx=p_,Ix=!1;try{Ix=!!process.env.NODE_PG_FORCE_NATIVE}catch{}Ix&&(jx=sc());Di.exports=new Px(jx);Object.defineProperty(Di.exports,"native",{configurable:!0,enumerable:!1,get(){let t=null;try{t=new Px(sc())}catch(e){if(e.code!=="MODULE_NOT_FOUND")throw e}return Object.defineProperty(Di.exports,"native",{value:t}),t}})});var Bi=zi(Nh()),oc=zi(require("node:path"));var he=zi(ic(),1),HC=he.default.Client,Rx=he.default.Pool,$C=he.default.Connection,QC=he.default.types,GC=he.default.Query,WC=he.default.DatabaseError,VC=he.default.escapeIdentifier,XC=he.default.escapeLiteral,KC=he.default.Result,ZC=he.default.TypeOverrides,YC=he.default.defaults;var Mx=Number(process.env.PORT??"3000"),Lx=oc.default.join(__dirname,"dist"),dn=new Rx({host:process.env.DB_HOST,port:Number(process.env.DB_PORT??"5432"),database:process.env.DB_NAME,user:process.env.DB_USER,password:process.env.DB_PASSWORD,ssl:!1}),b_=[{slug:"noise-cancelling-headphones",name:"Noise-Cancelling Headphones",description:"Wireless over-ear headphones with adaptive ANC and all-day battery life.",price:199.99,image_url:"/images/product-1.svg",inventory:18},{slug:"smart-watch",name:"Smart Watch",description:"Fitness tracking, notifications, and a bright AMOLED display.",price:149.99,image_url:"/images/product-2.svg",inventory:27},{slug:"wireless-mouse",name:"Wireless Mouse",description:"Ergonomic mouse with low-latency Bluetooth and USB receiver support.",price:39.99,image_url:"/images/product-3.svg",inventory:42},{slug:"mechanical-keyboard",name:"Mechanical Keyboard",description:"Hot-swappable keyboard with tactile switches and per-key backlighting.",price:89.99,image_url:"/images/product-4.svg",inventory:13},{slug:"4k-monitor",name:"4K Monitor",description:"27-inch display with USB-C docking and HDR-ready color reproduction.",price:329.99,image_url:"/images/product-5.svg",inventory:8}];async function w_(){await dn.query(`
+    CREATE TABLE IF NOT EXISTS products (
+      id SERIAL PRIMARY KEY,
+      slug TEXT NOT NULL UNIQUE,
+      name TEXT NOT NULL,
+      description TEXT NOT NULL,
+      price NUMERIC(10, 2) NOT NULL,
+      image_url TEXT NOT NULL,
+      inventory INTEGER NOT NULL DEFAULT 0
+    )
+  `);let{rows:t}=await dn.query("SELECT COUNT(*)::int AS count FROM products");if(t[0]?.count===0)for(let e of b_)await dn.query(`
+          INSERT INTO products (slug, name, description, price, image_url, inventory)
+          VALUES ($1, $2, $3, $4, $5, $6)
+        `,[e.slug,e.name,e.description,e.price,e.image_url,e.inventory])}var dt=(0,Bi.default)();dt.use(Bi.default.json());dt.get("/api/health",async(t,e)=>{try{await dn.query("SELECT 1"),e.json({status:"ok"})}catch(a){e.status(500).json({status:"error",message:a.message})}});dt.get("/api/products",async(t,e,a)=>{try{let n=await dn.query(`
+        SELECT id, slug, name, description, price::float8 AS price, image_url AS "imageUrl", inventory
+        FROM products
+        ORDER BY id
+      `);e.json(n.rows)}catch(n){a(n)}});dt.use(Bi.default.static(Lx));dt.get("*",(t,e)=>{e.sendFile(oc.default.join(Lx,"index.html"))});dt.use((t,e,a,n)=>{console.error(t),a.status(500).json({message:"Unexpected server error"})});w_().then(()=>{dt.listen(Mx,()=>{console.log(`spa-demo listening on ${Mx}`)})}).catch(t=>{console.error("Failed to initialize database",t),process.exit(1)});
+/*! Bundled license information:
+
+depd/index.js:
+  (*!
+   * depd
+   * Copyright(c) 2014-2018 Douglas Christopher Wilson
+   * MIT Licensed
+   *)
+
+bytes/index.js:
+  (*!
+   * bytes
+   * Copyright(c) 2012-2014 TJ Holowaychuk
+   * Copyright(c) 2015 Jed Watson
+   * MIT Licensed
+   *)
+
+content-type/index.js:
+  (*!
+   * content-type
+   * Copyright(c) 2015 Douglas Christopher Wilson
+   * MIT Licensed
+   *)
+
+statuses/index.js:
+  (*!
+   * statuses
+   * Copyright(c) 2014 Jonathan Ong
+   * Copyright(c) 2016 Douglas Christopher Wilson
+   * MIT Licensed
+   *)
+
+toidentifier/index.js:
+  (*!
+   * toidentifier
+   * Copyright(c) 2016 Douglas Christopher Wilson
+   * MIT Licensed
+   *)
+
+http-errors/index.js:
+  (*!
+   * http-errors
+   * Copyright(c) 2014 Jonathan Ong
+   * Copyright(c) 2016 Douglas Christopher Wilson
+   * MIT Licensed
+   *)
+
+destroy/index.js:
+  (*!
+   * destroy
+   * Copyright(c) 2014 Jonathan Ong
+   * Copyright(c) 2015-2022 Douglas Christopher Wilson
+   * MIT Licensed
+   *)
+
+unpipe/index.js:
+  (*!
+   * unpipe
+   * Copyright(c) 2015 Douglas Christopher Wilson
+   * MIT Licensed
+   *)
+
+raw-body/index.js:
+  (*!
+   * raw-body
+   * Copyright(c) 2013-2014 Jonathan Ong
+   * Copyright(c) 2014-2022 Douglas Christopher Wilson
+   * MIT Licensed
+   *)
+
+ee-first/index.js:
+  (*!
+   * ee-first
+   * Copyright(c) 2014 Jonathan Ong
+   * MIT Licensed
+   *)
+
+on-finished/index.js:
+  (*!
+   * on-finished
+   * Copyright(c) 2013 Jonathan Ong
+   * Copyright(c) 2014 Douglas Christopher Wilson
+   * MIT Licensed
+   *)
+
+body-parser/lib/read.js:
+body-parser/lib/types/raw.js:
+body-parser/lib/types/text.js:
+body-parser/index.js:
+  (*!
+   * body-parser
+   * Copyright(c) 2014-2015 Douglas Christopher Wilson
+   * MIT Licensed
+   *)
+
+media-typer/index.js:
+  (*!
+   * media-typer
+   * Copyright(c) 2014 Douglas Christopher Wilson
+   * MIT Licensed
+   *)
+
+mime-db/index.js:
+  (*!
+   * mime-db
+   * Copyright(c) 2014 Jonathan Ong
+   * Copyright(c) 2015-2022 Douglas Christopher Wilson
+   * MIT Licensed
+   *)
+
+mime-types/index.js:
+  (*!
+   * mime-types
+   * Copyright(c) 2014 Jonathan Ong
+   * Copyright(c) 2015 Douglas Christopher Wilson
+   * MIT Licensed
+   *)
+
+type-is/index.js:
+  (*!
+   * type-is
+   * Copyright(c) 2014 Jonathan Ong
+   * Copyright(c) 2014-2015 Douglas Christopher Wilson
+   * MIT Licensed
+   *)
+
+body-parser/lib/types/json.js:
+body-parser/lib/types/urlencoded.js:
+  (*!
+   * body-parser
+   * Copyright(c) 2014 Jonathan Ong
+   * Copyright(c) 2014-2015 Douglas Christopher Wilson
+   * MIT Licensed
+   *)
+
+merge-descriptors/index.js:
+  (*!
+   * merge-descriptors
+   * Copyright(c) 2014 Jonathan Ong
+   * Copyright(c) 2015 Douglas Christopher Wilson
+   * MIT Licensed
+   *)
+
+encodeurl/index.js:
+  (*!
+   * encodeurl
+   * Copyright(c) 2016 Douglas Christopher Wilson
+   * MIT Licensed
+   *)
+
+escape-html/index.js:
+  (*!
+   * escape-html
+   * Copyright(c) 2012-2013 TJ Holowaychuk
+   * Copyright(c) 2015 Andreas Lubbe
+   * Copyright(c) 2015 Tiancheng "Timothy" Gu
+   * MIT Licensed
+   *)
+
+parseurl/index.js:
+  (*!
+   * parseurl
+   * Copyright(c) 2014 Jonathan Ong
+   * Copyright(c) 2014-2017 Douglas Christopher Wilson
+   * MIT Licensed
+   *)
+
+finalhandler/index.js:
+  (*!
+   * finalhandler
+   * Copyright(c) 2014-2022 Douglas Christopher Wilson
+   * MIT Licensed
+   *)
+
+express/lib/router/layer.js:
+express/lib/router/route.js:
+express/lib/router/index.js:
+express/lib/middleware/init.js:
+express/lib/middleware/query.js:
+express/lib/view.js:
+express/lib/application.js:
+express/lib/request.js:
+express/lib/express.js:
+express/index.js:
+  (*!
+   * express
+   * Copyright(c) 2009-2013 TJ Holowaychuk
+   * Copyright(c) 2013 Roman Shtylman
+   * Copyright(c) 2014-2015 Douglas Christopher Wilson
+   * MIT Licensed
+   *)
+
+methods/index.js:
+  (*!
+   * methods
+   * Copyright(c) 2013-2014 TJ Holowaychuk
+   * Copyright(c) 2015-2016 Douglas Christopher Wilson
+   * MIT Licensed
+   *)
+
+safe-buffer/index.js:
+  (*! safe-buffer. MIT License. Feross Aboukhadijeh <https://feross.org/opensource> *)
+
+content-disposition/index.js:
+  (*!
+   * content-disposition
+   * Copyright(c) 2014-2017 Douglas Christopher Wilson
+   * MIT Licensed
+   *)
+
+etag/index.js:
+  (*!
+   * etag
+   * Copyright(c) 2014-2016 Douglas Christopher Wilson
+   * MIT Licensed
+   *)
+
+fresh/index.js:
+  (*!
+   * fresh
+   * Copyright(c) 2012 TJ Holowaychuk
+   * Copyright(c) 2016-2017 Douglas Christopher Wilson
+   * MIT Licensed
+   *)
+
+range-parser/index.js:
+  (*!
+   * range-parser
+   * Copyright(c) 2012-2014 TJ Holowaychuk
+   * Copyright(c) 2015-2016 Douglas Christopher Wilson
+   * MIT Licensed
+   *)
+
+send/index.js:
+  (*!
+   * send
+   * Copyright(c) 2012 TJ Holowaychuk
+   * Copyright(c) 2014-2022 Douglas Christopher Wilson
+   * MIT Licensed
+   *)
+
+forwarded/index.js:
+  (*!
+   * forwarded
+   * Copyright(c) 2014-2017 Douglas Christopher Wilson
+   * MIT Licensed
+   *)
+
+proxy-addr/index.js:
+  (*!
+   * proxy-addr
+   * Copyright(c) 2014-2016 Douglas Christopher Wilson
+   * MIT Licensed
+   *)
+
+express/lib/utils.js:
+express/lib/response.js:
+  (*!
+   * express
+   * Copyright(c) 2009-2013 TJ Holowaychuk
+   * Copyright(c) 2014-2015 Douglas Christopher Wilson
+   * MIT Licensed
+   *)
+
+negotiator/index.js:
+  (*!
+   * negotiator
+   * Copyright(c) 2012 Federico Romero
+   * Copyright(c) 2012-2014 Isaac Z. Schlueter
+   * Copyright(c) 2015 Douglas Christopher Wilson
+   * MIT Licensed
+   *)
+
+accepts/index.js:
+  (*!
+   * accepts
+   * Copyright(c) 2014 Jonathan Ong
+   * Copyright(c) 2015 Douglas Christopher Wilson
+   * MIT Licensed
+   *)
+
+cookie/index.js:
+  (*!
+   * cookie
+   * Copyright(c) 2012-2014 Roman Shtylman
+   * Copyright(c) 2015 Douglas Christopher Wilson
+   * MIT Licensed
+   *)
+
+vary/index.js:
+  (*!
+   * vary
+   * Copyright(c) 2014-2017 Douglas Christopher Wilson
+   * MIT Licensed
+   *)
+
+serve-static/index.js:
+  (*!
+   * serve-static
+   * Copyright(c) 2010 Sencha Inc.
+   * Copyright(c) 2011 TJ Holowaychuk
+   * Copyright(c) 2014-2016 Douglas Christopher Wilson
+   * MIT Licensed
+   *)
+*/

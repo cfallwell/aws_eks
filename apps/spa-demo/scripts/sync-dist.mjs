@@ -17,12 +17,12 @@ mkdirSync(assetsDir, { recursive: true });
 mkdirSync(imagesDir, { recursive: true });
 
 for (const entry of readdirSync(runtimeDir)) {
-  if (entry.startsWith("server.js.part.")) {
+  if (entry.startsWith("server.cjs.part.") || entry.startsWith("server.js.part.")) {
     rmSync(path.join(runtimeDir, entry), { force: true });
   }
 }
 
-rmSync(path.join(runtimeDir, "server.js"), { force: true });
+rmSync(path.join(runtimeDir, "server.cjs"), { force: true });
 
 cpSync(path.join(appRoot, "dist/index.html"), path.join(siteDir, "index.html"));
 cpSync(path.join(appRoot, "dist/assets/app.js"), path.join(assetsDir, "app.js"));
@@ -33,13 +33,13 @@ for (const entry of readdirSync(imagesDir)) {
 
 cpSync(path.join(appRoot, "dist/images"), imagesDir, { recursive: true });
 
-const serverBundle = readFileSync(path.join(appRoot, "dist/server.js"), "utf8");
+const serverBundle = readFileSync(path.join(appRoot, "dist/server.cjs"), "utf8");
 const chunkCount = Math.ceil(serverBundle.length / chunkSize);
 
 for (let index = 0; index < chunkCount; index += 1) {
   const start = index * chunkSize;
   const end = start + chunkSize;
   const chunk = serverBundle.slice(start, end);
-  const fileName = `server.js.part.${String(index).padStart(3, "0")}`;
+  const fileName = `server.cjs.part.${String(index).padStart(3, "0")}`;
   writeFileSync(path.join(runtimeDir, fileName), chunk);
 }
