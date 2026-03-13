@@ -11,6 +11,7 @@
     "start": "node dist/server.cjs"
   },
   "dependencies": {
+    "@cfallwell/rumbootstrap": "3.0.0",
     "express": "^4.21.2",
     "pg": "^8.13.3",
     "react": "^18.3.1",
