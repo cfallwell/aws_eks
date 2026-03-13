@@ -82,6 +82,19 @@ variable "gitops_repository_branch" {
   default     = "main"
 }
 
+variable "gitops_repository_username" {
+  type        = string
+  description = "Optional username for Argo CD to authenticate to the GitOps repository when using HTTPS."
+  default     = ""
+}
+
+variable "gitops_repository_password" {
+  type        = string
+  description = "Optional password or token for Argo CD to authenticate to the GitOps repository when using HTTPS."
+  sensitive   = true
+  default     = ""
+}
+
 variable "argocd_namespace" {
   type        = string
   description = "Namespace used for the Argo CD control plane."

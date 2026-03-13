@@ -25,6 +25,30 @@ resource "helm_release" "argocd" {
   ]
 }
 
+resource "kubernetes_secret_v1" "argocd_repository_credentials" {
+  count = var.gitops_repository_username != "" && var.gitops_repository_password != "" ? 1 : 0
+
+  metadata {
+    name      = "gitops-repository-credentials"
+    namespace = var.argocd_namespace
+
+    labels = {
+      "argocd.argoproj.io/secret-type" = "repository"
+    }
+  }
+
+  type = "Opaque"
+
+  data = {
+    url      = var.gitops_repository_url
+    type     = "git"
+    username = var.gitops_repository_username
+    password = var.gitops_repository_password
+  }
+
+  depends_on = [helm_release.argocd]
+}
+
 resource "kubernetes_namespace_v1" "spa_demo" {
   metadata {
     name = "spa-demo"
@@ -175,6 +199,7 @@ resource "null_resource" "argocd_bootstrap" {
     null_resource.kubeconfig,
     helm_release.argocd,
     helm_release.aws_load_balancer_controller,
+    kubernetes_secret_v1.argocd_repository_credentials,
     kubernetes_namespace_v1.spa_demo,
     kubernetes_namespace_v1.signalfx_otel,
     kubernetes_secret_v1.signalfx_otel_credentials,
