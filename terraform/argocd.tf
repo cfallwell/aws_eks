@@ -114,6 +114,7 @@ resource "kubernetes_secret_v1" "spa_demo_db" {
     DB_NAME     = var.spa_demo_db_name
     DB_USER     = var.spa_demo_db_username
     DB_PASSWORD = random_password.spa_demo_db.result
+    DB_SSLMODE  = "require"
     PORT        = "3000"
     NODE_ENV    = "production"
   }

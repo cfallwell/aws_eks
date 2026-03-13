@@ -4,6 +4,20 @@ import { Pool } from "pg";
 
 const port = Number(process.env.PORT ?? "3000");
 const distDir = path.join(__dirname, "dist");
+const sslMode = (process.env.DB_SSLMODE ?? process.env.PGSSLMODE ?? "require").toLowerCase();
+
+function getSslConfig() {
+  switch (sslMode) {
+    case "disable":
+      return false;
+    case "no-verify":
+    case "allow":
+    case "prefer":
+    case "require":
+    default:
+      return { rejectUnauthorized: false };
+  }
+}
 
 const pool = new Pool({
   host: process.env.DB_HOST,
@@ -11,7 +25,7 @@ const pool = new Pool({
   database: process.env.DB_NAME,
   user: process.env.DB_USER,
   password: process.env.DB_PASSWORD,
-  ssl: false,
+  ssl: getSslConfig(),
 });
 
 const seedProducts = [
