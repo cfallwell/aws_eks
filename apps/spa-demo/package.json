@@ -4,11 +4,11 @@
   "private": true,
   "scripts": {
     "dev": "vite",
-    "build": "vite build && esbuild server/index.ts --bundle --minify --platform=node --format=esm --outfile=dist/server.js && npm run sync-dist",
+    "build": "vite build && esbuild server/index.ts --bundle --minify --platform=node --format=cjs --outfile=dist/server.cjs && npm run sync-dist",
     "sync-dist": "node scripts/sync-dist.mjs",
     "preview": "vite preview",
     "lint": "tsc --noEmit && tsc --project tsconfig.server.json --noEmit",
-    "start": "node dist/server.js"
+    "start": "node dist/server.cjs"
   },
   "dependencies": {
     "express": "^4.21.2",

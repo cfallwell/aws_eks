@@ -4,14 +4,14 @@ metadata:
   name: spa-demo-runtime-000
   namespace: {{ .Release.Namespace }}
 binaryData:
-  server.js.part.000: {{ .Files.Get "files/runtime/server.js.part.000" | b64enc | quote }}
-{{- range $path, $_ := .Files.Glob "files/runtime/server.js.part.*" }}
-{{- if ne (base $path) "server.js.part.000" }}
+  server.cjs.part.000: {{ .Files.Get "files/runtime/server.cjs.part.000" | b64enc | quote }}
+{{- range $path, $_ := .Files.Glob "files/runtime/server.cjs.part.*" }}
+{{- if ne (base $path) "server.cjs.part.000" }}
 ---
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: spa-demo-runtime-{{ trimPrefix "server.js.part." (base $path) }}
+  name: spa-demo-runtime-{{ trimPrefix "server.cjs.part." (base $path) }}
   namespace: {{ $.Release.Namespace }}
 binaryData:
   {{ base $path }}: {{ $.Files.Get $path | b64enc | quote }}

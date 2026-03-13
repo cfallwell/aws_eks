@@ -23,7 +23,7 @@ spec:
             - -ec
             - |
               mkdir -p /workspace/dist/assets /workspace/dist/images
-              cat /config/runtime/server.js.part.* > /workspace/server.js
+              cat /config/runtime/server.cjs.part.* > /workspace/server.cjs
               cp /config/site/index.html /workspace/dist/index.html
               cp /config/assets/app.js /workspace/dist/assets/app.js
               cp /config/images/product-*.svg /workspace/dist/images/
@@ -44,7 +44,7 @@ spec:
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           command:
             - node
-            - /app/server.js
+            - /app/server.cjs
           ports:
             - containerPort: {{ .Values.service.targetPort }}
               name: http
@@ -77,10 +77,10 @@ spec:
             sources:
               - configMap:
                   name: spa-demo-runtime-000
-{{- range $path, $_ := .Files.Glob "files/runtime/server.js.part.*" }}
-{{- if ne (base $path) "server.js.part.000" }}
+{{- range $path, $_ := .Files.Glob "files/runtime/server.cjs.part.*" }}
+{{- if ne (base $path) "server.cjs.part.000" }}
               - configMap:
-                  name: spa-demo-runtime-{{ trimPrefix "server.js.part." (base $path) }}
+                  name: spa-demo-runtime-{{ trimPrefix "server.cjs.part." (base $path) }}
 {{- end }}
 {{- end }}
         - name: spa-demo-site
