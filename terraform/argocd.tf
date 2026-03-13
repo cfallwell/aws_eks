@@ -188,9 +188,12 @@ locals {
 
 resource "null_resource" "argocd_bootstrap" {
   triggers = {
-    manifest_sha = sha256(local.argocd_bootstrap_manifest)
-    cluster_name = module.eks.cluster_name
-    region       = var.region
+    manifest_sha            = sha256(local.argocd_bootstrap_manifest)
+    cluster_name            = module.eks.cluster_name
+    region                  = var.region
+    argocd_namespace        = var.argocd_namespace
+    signalfx_otel_enabled   = tostring(var.signalfx_otel_enabled)
+    signalfx_otel_namespace = var.signalfx_otel_namespace
   }
 
   provisioner "local-exec" {
@@ -200,6 +203,32 @@ resource "null_resource" "argocd_bootstrap" {
       cat <<'EOF' | kubectl apply -f -
       ${local.argocd_bootstrap_manifest}
       EOF
+    EOT
+  }
+
+  provisioner "local-exec" {
+    when    = destroy
+    command = <<-EOT
+      set -euo pipefail
+
+      aws eks update-kubeconfig --region ${self.triggers.region} --name ${self.triggers.cluster_name}
+
+      kubectl delete application metrics-server spa-demo -n ${self.triggers.argocd_namespace} --ignore-not-found --wait=false || true
+
+      if [ "${self.triggers.signalfx_otel_enabled}" = "true" ]; then
+        kubectl delete application signalfx-otel -n ${self.triggers.argocd_namespace} --ignore-not-found --wait=false || true
+      fi
+
+      kubectl delete appproject platform -n ${self.triggers.argocd_namespace} --ignore-not-found --wait=false || true
+
+      kubectl patch ingress spa-demo -n spa-demo --type=merge -p '{"metadata":{"finalizers":[]}}' >/dev/null 2>&1 || true
+      kubectl delete namespace spa-demo --ignore-not-found --wait=false || true
+      kubectl patch namespace spa-demo --type=merge -p '{"spec":{"finalizers":[]}}' >/dev/null 2>&1 || true
+
+      if [ "${self.triggers.signalfx_otel_enabled}" = "true" ]; then
+        kubectl delete namespace ${self.triggers.signalfx_otel_namespace} --ignore-not-found --wait=false || true
+        kubectl patch namespace ${self.triggers.signalfx_otel_namespace} --type=merge -p '{"spec":{"finalizers":[]}}' >/dev/null 2>&1 || true
+      fi
     EOT
   }
 
