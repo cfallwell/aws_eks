@@ -23,13 +23,10 @@ spec:
             - -ec
             - |
               mkdir -p /workspace/dist/assets /workspace/dist/images
-              cp /config/runtime/package.json /workspace/package.json
-              cp /config/runtime/package-lock.json /workspace/package-lock.json
               cp /config/runtime/server.js /workspace/server.js
               cp /config/site/index.html /workspace/dist/index.html
               cp /config/assets/app.js /workspace/dist/assets/app.js
               cp /config/images/product-*.svg /workspace/dist/images/
-              npm ci --omit=dev --ignore-scripts --prefix /workspace
           volumeMounts:
             - name: app-runtime
               mountPath: /workspace

@@ -3,13 +3,8 @@ kind: ConfigMap
 metadata:
   name: spa-demo-runtime
   namespace: {{ .Release.Namespace }}
-data:
-  package.json: |
-{{ .Files.Get "files/runtime/package.json" | nindent 4 }}
-  package-lock.json: |
-{{ .Files.Get "files/runtime/package-lock.json" | nindent 4 }}
-  server.js: |
-{{ .Files.Get "files/runtime/server.js" | nindent 4 }}
+binaryData:
+  server.js: {{ .Files.Get "files/runtime/server.js" | b64enc | quote }}
 ---
 apiVersion: v1
 kind: ConfigMap
