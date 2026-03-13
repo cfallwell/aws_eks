@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "vite",
-    "build": "vite build && esbuild server/index.ts --bundle --platform=node --format=esm --outfile=dist/server.js && npm run sync-dist",
+    "build": "vite build && esbuild server/index.ts --bundle --minify --platform=node --format=esm --outfile=dist/server.js && npm run sync-dist",
     "sync-dist": "mkdir -p ../../charts/spa-demo/files/runtime ../../charts/spa-demo/files/site/assets ../../charts/spa-demo/files/site/images && cp dist/server.js ../../charts/spa-demo/files/runtime/server.js && cp dist/index.html ../../charts/spa-demo/files/site/index.html && cp dist/assets/app.js ../../charts/spa-demo/files/site/assets/app.js && cp dist/images/*.svg ../../charts/spa-demo/files/site/images/",
     "preview": "vite preview",
     "lint": "tsc --noEmit && tsc --project tsconfig.server.json --noEmit",
