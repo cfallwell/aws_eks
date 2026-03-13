@@ -1,3 +1,8 @@
+resource "time_sleep" "eks_authz_ready" {
+  depends_on      = [null_resource.kubeconfig]
+  create_duration = "30s"
+}
+
 resource "helm_release" "argocd" {
   name             = "argocd"
   repository       = "https://argoproj.github.io/argo-helm"
@@ -23,6 +28,8 @@ resource "helm_release" "argocd" {
       }
     })
   ]
+
+  depends_on = [time_sleep.eks_authz_ready]
 }
 
 resource "kubernetes_secret_v1" "argocd_repository_credentials" {
@@ -46,13 +53,15 @@ resource "kubernetes_secret_v1" "argocd_repository_credentials" {
     password = var.gitops_repository_password
   }
 
-  depends_on = [helm_release.argocd]
+  depends_on = [time_sleep.eks_authz_ready, helm_release.argocd]
 }
 
 resource "kubernetes_namespace_v1" "spa_demo" {
   metadata {
     name = "spa-demo"
   }
+
+  depends_on = [time_sleep.eks_authz_ready]
 }
 
 resource "kubernetes_namespace_v1" "signalfx_otel" {
@@ -61,6 +70,8 @@ resource "kubernetes_namespace_v1" "signalfx_otel" {
   metadata {
     name = var.signalfx_otel_namespace
   }
+
+  depends_on = [time_sleep.eks_authz_ready]
 }
 
 resource "kubernetes_secret_v1" "signalfx_otel_credentials" {
@@ -77,6 +88,8 @@ resource "kubernetes_secret_v1" "signalfx_otel_credentials" {
     splunk_observability_access_token = var.signalfx_observability_access_token
     splunk_platform_hec_token         = var.signalfx_platform_hec_token
   }
+
+  depends_on = [time_sleep.eks_authz_ready]
 }
 
 resource "kubernetes_storage_class_v1" "gp3" {
@@ -98,6 +111,8 @@ resource "kubernetes_storage_class_v1" "gp3" {
     encrypted = "true"
     fsType    = "ext4"
   }
+
+  depends_on = [time_sleep.eks_authz_ready]
 }
 
 resource "kubernetes_secret_v1" "spa_demo_db" {
@@ -118,6 +133,8 @@ resource "kubernetes_secret_v1" "spa_demo_db" {
     PORT        = "3000"
     NODE_ENV    = "production"
   }
+
+  depends_on = [time_sleep.eks_authz_ready]
 }
 
 resource "helm_release" "aws_load_balancer_controller" {
@@ -145,6 +162,8 @@ resource "helm_release" "aws_load_balancer_controller" {
       }
     })
   ]
+
+  depends_on = [time_sleep.eks_authz_ready]
 }
 
 locals {
