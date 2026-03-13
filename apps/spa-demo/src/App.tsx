@@ -1,10 +1,10 @@
 import { useEffect, useState } from "react";
 import type { CSSProperties } from "react";
+import { RumRouterTracker, useEnableReplayPersist } from "@cfallwell/rumbootstrap";
 import { NavLink, Route, Routes } from "react-router-dom";
 import Cart from "./components/Cart";
 import ProductDetail from "./components/ProductDetail";
 import ProductList from "./components/ProductList";
-import { RumRouterTracker, useEnableReplayPersist } from "./lib/rumbootstrap";
 import { fetchProducts } from "./lib/api";
 import type { CartItem, Product } from "./lib/types";
 

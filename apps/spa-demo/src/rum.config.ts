@@ -1,4 +1,4 @@
-import type { RumConfig } from "./lib/rumbootstrap";
+import type { RumConfig } from "@cfallwell/rumbootstrap";
 
 const ignoreUrls = import.meta.env.VITE_SPLUNK_RUM_IGNORE_URLS
   ? import.meta.env.VITE_SPLUNK_RUM_IGNORE_URLS.split(",")
