@@ -7,6 +7,7 @@ This repository now uses `Argo CD + Helm` for application delivery into EKS.
 - Installs Argo CD with Terraform.
 - Installs the AWS Load Balancer Controller with Terraform.
 - Creates the `gp3` `StorageClass` with Terraform.
+- Bootstraps an Argo CD `Application` that deploys `metrics-server` into `kube-system`.
 - Creates the `spa-demo` namespace and `spa-demo-db` secret with Terraform.
 - Bootstraps an Argo CD `Application` that deploys `spa-demo` from `charts/spa-demo`.
 

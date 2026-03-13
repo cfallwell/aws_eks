@@ -148,6 +148,12 @@ resource "helm_release" "aws_load_balancer_controller" {
 }
 
 locals {
+  argocd_metrics_server_application_manifest = templatefile("${path.module}/templates/argocd-metrics-server-application.yaml.tftpl", {
+    argocd_namespace         = var.argocd_namespace
+    gitops_repository_url    = var.gitops_repository_url
+    gitops_repository_branch = var.gitops_repository_branch
+  })
+
   argocd_spa_demo_application_manifest = templatefile("${path.module}/templates/argocd-spa-demo-application.yaml.tftpl", {
     argocd_namespace         = var.argocd_namespace
     gitops_repository_url    = var.gitops_repository_url
@@ -173,6 +179,7 @@ locals {
   argocd_bootstrap_manifest = join(
     "\n---\n",
     compact([
+      local.argocd_metrics_server_application_manifest,
       local.argocd_spa_demo_application_manifest,
       var.signalfx_otel_enabled ? local.argocd_signalfx_otel_application_manifest : ""
     ])
