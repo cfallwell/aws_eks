@@ -92,3 +92,20 @@ When you change the app:
 2. Run `npm run build` from `apps/spa-demo` to refresh the chart payload in `charts/spa-demo/files`.
 3. Commit and push the branch Argo CD is watching.
 4. Let Argo CD sync automatically or trigger a manual sync in the UI.
+
+## Troubleshooting
+
+If the Argo CD applications show `SYNC STATUS` as `Unknown`, inspect the application condition:
+
+```bash
+kubectl -n argocd get application metrics-server -o yaml
+```
+
+If you see a `ComparisonError` like `Password authentication is not supported for Git operations`, Argo CD cannot read the GitOps repository.
+
+For private GitHub repositories:
+
+- use a valid GitHub personal access token with `repo` scope for `gitops_repository_password`, or
+- switch to SSH-based repository access and provide an SSH private key Argo CD can use
+
+If you rotate the Git credential, update the Argo CD repository secret and the Terraform input you use for future applies so the next `terraform apply` does not restore a stale credential.
