@@ -107,6 +107,37 @@ variable "argocd_chart_version" {
   default     = "9.4.10"
 }
 
+variable "external_dns_enabled" {
+  type        = bool
+  description = "Whether to install external-dns for DNS automation."
+  default     = false
+}
+
+variable "external_dns_namespace" {
+  type        = string
+  description = "Namespace used for the external-dns deployment."
+  default     = "kube-system"
+}
+
+variable "external_dns_chart_version" {
+  type        = string
+  description = "Version of the external-dns Helm chart to install."
+  default     = "1.20.0"
+}
+
+variable "external_dns_domain_filters" {
+  type        = list(string)
+  description = "Domain suffixes external-dns is allowed to manage."
+  default     = []
+}
+
+variable "external_dns_cloudflare_api_token" {
+  type        = string
+  description = "Cloudflare API token used by external-dns to manage DNS records."
+  sensitive   = true
+  default     = ""
+}
+
 variable "signalfx_otel_enabled" {
   type        = bool
   description = "Whether Argo CD should deploy the SignalFx OpenTelemetry collector."
