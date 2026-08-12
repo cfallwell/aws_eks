@@ -27,20 +27,35 @@ is `require`, which fails locally). On first boot the server auto-creates the
 `products` table and seeds 5 rows (`ensureSchema()` in `server/index.ts`), so no
 manual migration is needed.
 
-### Private dependency gotcha (blocks npm install / dev / build / lint)
+### Private dependency + registry (needed for npm install / dev / build / lint)
 
-`apps/spa-demo` depends on `@cfallwell/rumbootstrap` from **GitHub Packages**
-(see `apps/spa-demo/.npmrc`). This package is private and requires a token with
-`read:packages` on the `cfallwell` org. Without it, `npm install` fails with
-401/403 and therefore `npm run dev|build|lint` cannot run. The repo's committed
-`package-lock.json` is also out of sync with `package.json` (it omits this
-package), so `npm ci` will not work — use `npm install`.
+`apps/spa-demo` depends on `@cfallwell/rumbootstrap`, a **private** package on
+**GitHub Packages** (`npm.pkg.github.com`, scoped via `apps/spa-demo/.npmrc`).
+Everything else resolves from the **public** npm registry
+(`registry.npmjs.org`); the lockfile no longer references Splunk's internal
+`repo.splunkdev.net` Artifactory (which is not reachable here).
 
-Auth is wired via a user-level `~/.npmrc` (created during setup, not tracked):
-`//npm.pkg.github.com/:_authToken=${NODE_AUTH_TOKEN}`. Provide the secret
-`NODE_AUTH_TOKEN` (a GitHub PAT/token with `read:packages`) so `npm install`
-succeeds. The `git` remote's `ghs_` installation token does NOT have package
-read access.
+Provide the secret `NODE_AUTH_TOKEN` so npm can fetch the private package. Auth
+is wired via a user-level `~/.npmrc` (created during setup, not tracked):
+`//npm.pkg.github.com/:_authToken=${NODE_AUTH_TOKEN}`. Token requirements:
+
+- It MUST be a **classic** PAT (`ghp_...`) with `read:packages`.
+  `npm.pkg.github.com` rejects **fine-grained** PATs (`github_pat_...`) with
+  `403 ... token does not match expected scopes`.
+- The token's account MUST have read access to the package. It is owned by the
+  **user** `cfallwell` (not an org), so the token must belong to `cfallwell` (or
+  an account it has granted access). The `git` remote's `ghs_` installation
+  token does NOT have package read access.
+
+With the token set, both `npm install` and `npm ci` work (lockfile is in sync).
+
+Version note: `package.json` pins `@cfallwell/rumbootstrap@1.0.3` (the latest
+version actually published to GitHub Packages: only `1.0.0`–`1.0.3` exist). The
+previously pinned `3.0.0` was never published anywhere, so it could not install.
+Building against `1.0.3` pulls the full Splunk RUM library, so the built
+`dist/assets/app.js` is much larger (~1.3 MB) than the committed artifact
+(~173 KB, which was produced from the unpublished lightweight `3.0.0`). The
+regenerated build outputs are intentionally NOT committed here.
 
 Note: `src/lib/rumbootstrap.tsx` is an unused local mirror of that package's API;
 the source imports the real package (`@cfallwell/rumbootstrap`), not this file.
