@@ -196,6 +196,10 @@ resource "aws_instance" "ssh_demo" {
     volume_type = "gp3"
     volume_size = var.ec2_root_volume_size
     encrypted   = true
+
+    tags = merge(local.common_tags, {
+      Name = "${local.name}-ssh-demo-root"
+    })
   }
 
   tags = merge(local.common_tags, {
