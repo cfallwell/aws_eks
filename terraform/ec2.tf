@@ -185,6 +185,12 @@ resource "aws_instance" "ssh_demo" {
   # Re-provision if the rendered cloud-init (users/passwords) changes.
   user_data_replace_on_change = true
 
+  # Depend on the whole VPC module so the instance is never created before its
+  # internet routing (IGW, public route table, and subnet associations) exists.
+  # This also makes `terraform apply -target=aws_instance.ssh_demo` pull in the
+  # full VPC, instead of just the subnet, avoiding an unreachable "public" host.
+  depends_on = [module.vpc]
+
   # Enforce IMDSv2.
   metadata_options {
     http_endpoint               = "enabled"
