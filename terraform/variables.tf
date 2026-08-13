@@ -70,6 +70,35 @@ variable "tags" {
   default     = {}
 }
 
+variable "ec2_enabled" {
+  type        = bool
+  description = "Whether to create the standalone SSH/Docker EC2 instance."
+  default     = true
+}
+
+variable "ec2_instance_type" {
+  type        = string
+  description = "EC2 instance size for the standalone SSH/Docker instance."
+  default     = "t3.small"
+}
+
+variable "ec2_ssh_ingress_cidrs" {
+  type        = list(string)
+  description = "CIDR blocks allowed to reach the EC2 instance over SSH (port 22). Defaults to none; set to your source CIDR(s), e.g. [\"203.0.113.4/32\"]. Never use 0.0.0.0/0."
+  default     = []
+
+  validation {
+    condition     = !contains(var.ec2_ssh_ingress_cidrs, "0.0.0.0/0")
+    error_message = "Do not open SSH (port 22) to 0.0.0.0/0. Restrict ec2_ssh_ingress_cidrs to specific source CIDRs."
+  }
+}
+
+variable "ec2_root_volume_size" {
+  type        = number
+  description = "Root EBS volume size (GiB) for the standalone EC2 instance."
+  default     = 30
+}
+
 variable "gitops_repository_url" {
   type        = string
   description = "Repository URL Argo CD should reconcile."

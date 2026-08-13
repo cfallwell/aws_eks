@@ -47,3 +47,27 @@ output "spa_demo_db_secret_name" {
   description = "Kubernetes secret used by the spa-demo API to connect to PostgreSQL."
   value       = "spa-demo-db"
 }
+
+output "ec2_instance_public_dns" {
+  description = "AWS-assigned public DNS name of the standalone EC2 instance (not tied to a named DNS zone)."
+  value       = var.ec2_enabled ? one(aws_instance.ssh_demo[*].public_dns) : null
+}
+
+output "ec2_instance_public_ip" {
+  description = "Public IPv4 address of the standalone EC2 instance."
+  value       = var.ec2_enabled ? one(aws_instance.ssh_demo[*].public_ip) : null
+}
+
+output "ec2_ssh_usernames" {
+  description = "Generated SSH usernames for the standalone EC2 instance."
+  value = var.ec2_enabled ? {
+    admin = local.ec2_admin_username
+    user  = local.ec2_user_username
+  } : null
+}
+
+output "ec2_ssh_accounts" {
+  description = "Generated SSH accounts (username, password, sudo) for the standalone EC2 instance. Retrieve with: terraform output -json ec2_ssh_accounts"
+  value       = var.ec2_enabled ? local.ec2_accounts : null
+  sensitive   = true
+}

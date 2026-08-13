@@ -1,0 +1,45 @@
+#cloud-config
+# Managed by Terraform (terraform/ec2.tf). Provisions two password-based SSH
+# logins and installs Docker on Amazon Linux 2023.
+package_update: true
+package_upgrade: false
+
+# Enable password authentication for SSH (cloud images disable it by default).
+ssh_pwauth: true
+
+packages:
+  - docker
+
+users:
+  - default
+  # Admin account: full sudo (member of the wheel group) + explicit sudoers rule.
+  - name: ${admin_username}
+    shell: /bin/bash
+    groups: [wheel]
+    sudo: "ALL=(ALL:ALL) ALL"
+    lock_passwd: false
+  # Standard (non-privileged) account.
+  - name: ${user_username}
+    shell: /bin/bash
+    lock_passwd: false
+
+# Set the randomly generated passwords. jsonencode() safely quotes/escapes any
+# special characters so the YAML stays valid. type=text lets cloud-init hash the
+# plaintext with the OS default algorithm.
+chpasswd:
+  expire: false
+  users:
+    - name: ${admin_username}
+      password: ${jsonencode(admin_password)}
+      type: text
+    - name: ${user_username}
+      password: ${jsonencode(user_password)}
+      type: text
+
+runcmd:
+  # Start Docker and grant both accounts access to the daemon socket. The docker
+  # group is created by the docker package, so add membership here (after the
+  # package install) rather than at user-creation time.
+  - systemctl enable --now docker
+  - usermod -aG docker ${admin_username}
+  - usermod -aG docker ${user_username}
