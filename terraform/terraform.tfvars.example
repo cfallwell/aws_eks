@@ -19,6 +19,14 @@ tags = {
   owner = "platform"
 }
 
+# Standalone SSH/Docker EC2 instance.
+ec2_enabled       = true
+ec2_instance_type = "t3.small"
+# SSH source CIDRs. Defaults to 0.0.0.0/0 (open to all); restrict to specific
+# CIDR(s), e.g. ["203.0.113.4/32"], to reduce exposure.
+ec2_ssh_ingress_cidrs = ["0.0.0.0/0"]
+ec2_root_volume_size  = 30
+
 gitops_repository_url    = "https://github.com/cfallwell/aws_eks.git"
 gitops_repository_branch = "main"
 gitops_repository_username = ""
