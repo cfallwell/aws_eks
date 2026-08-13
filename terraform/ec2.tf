@@ -96,21 +96,21 @@ data "aws_ami" "al2023" {
 }
 
 # ---------------------------------------------------------------------------
-# Security group: inbound SSH only from explicitly allowed CIDRs.
+# Security group: inbound SSH from the configured CIDRs.
 # ---------------------------------------------------------------------------
-# NOTE: ec2_ssh_ingress_cidrs intentionally defaults to [] (no ingress). Set it
-# to your source CIDR(s) to enable SSH. Never open port 22 to 0.0.0.0/0.
+# NOTE: ec2_ssh_ingress_cidrs defaults to 0.0.0.0/0 (open to all). Restrict it to
+# specific source CIDR(s) to reduce exposure.
 resource "aws_security_group" "ec2_ssh" {
   count = var.ec2_enabled ? 1 : 0
 
   name        = "${local.name}-ec2-ssh"
-  description = "Allow inbound SSH from approved CIDRs to the demo EC2 instance"
+  description = "Allow inbound SSH to the demo EC2 instance"
   vpc_id      = module.vpc.vpc_id
 
   dynamic "ingress" {
     for_each = length(var.ec2_ssh_ingress_cidrs) > 0 ? [1] : []
     content {
-      description = "SSH from approved CIDRs"
+      description = "SSH"
       from_port   = 22
       to_port     = 22
       protocol    = "tcp"

@@ -32,7 +32,7 @@ Control the instance with these variables (see `terraform/variables.tf`):
 
 - `ec2_instance_type` — instance size, default `t3.small`.
 - `ec2_ssh_ingress_cidrs` — source CIDR(s) allowed to reach port 22. Defaults to
-  none; set to your `/32` to enable SSH. Never use `0.0.0.0/0`.
+  `0.0.0.0/0` (open to all); restrict to your `/32` to reduce exposure.
 - `ec2_enabled` — set to `false` to skip creating the instance.
 
 Retrieve the connection details after `terraform apply`:

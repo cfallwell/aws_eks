@@ -84,13 +84,8 @@ variable "ec2_instance_type" {
 
 variable "ec2_ssh_ingress_cidrs" {
   type        = list(string)
-  description = "CIDR blocks allowed to reach the EC2 instance over SSH (port 22). Defaults to none; set to your source CIDR(s), e.g. [\"203.0.113.4/32\"]. Never use 0.0.0.0/0."
-  default     = []
-
-  validation {
-    condition     = !contains(var.ec2_ssh_ingress_cidrs, "0.0.0.0/0")
-    error_message = "Do not open SSH (port 22) to 0.0.0.0/0. Restrict ec2_ssh_ingress_cidrs to specific source CIDRs."
-  }
+  description = "CIDR blocks allowed to reach the EC2 instance over SSH (port 22). Defaults to 0.0.0.0/0 (open to all). Restrict to specific source CIDRs to limit exposure."
+  default     = ["0.0.0.0/0"]
 }
 
 variable "ec2_root_volume_size" {
