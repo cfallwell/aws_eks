@@ -17,6 +17,34 @@ EKS infrastructure, Argo CD bootstrap, and the `spa-demo` application source.
 - AWS Load Balancer Controller for public ingress on EKS.
 - The `spa-demo` workload delivered from a Helm chart through Argo CD.
 - A reusable SignalFx OpenTelemetry wrapper chart with an override values layer.
+- A standalone EC2 instance (default `t3.small`) reachable over SSH with two
+  randomly generated password logins and Docker preinstalled.
+
+## Standalone EC2 (SSH + Docker)
+
+Terraform provisions an Amazon Linux 2023 EC2 instance with Docker installed and
+two randomly generated local accounts: one `user…` account and one `admin…`
+account (each username carries 16 random characters and a 16-character complex
+password). The `admin` account has full `sudo` (root) access via the `wheel`
+group. Both accounts can use Docker.
+
+Control the instance with these variables (see `terraform/variables.tf`):
+
+- `ec2_instance_type` — instance size, default `t3.small`.
+- `ec2_ssh_ingress_cidrs` — source CIDR(s) allowed to reach port 22. Defaults to
+  none; set to your `/32` to enable SSH. Never use `0.0.0.0/0`.
+- `ec2_enabled` — set to `false` to skip creating the instance.
+
+Retrieve the connection details after `terraform apply`:
+
+```bash
+terraform output ec2_instance_public_dns
+terraform output -json ec2_ssh_accounts   # usernames + passwords (sensitive)
+```
+
+The instance is reported by its AWS-assigned public DNS name; no named DNS zone
+is created. The instance role also enables AWS SSM Session Manager as a key-less
+access path.
 
 ## Apply Flow
 
