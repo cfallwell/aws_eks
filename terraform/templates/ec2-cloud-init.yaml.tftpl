@@ -4,7 +4,8 @@
 package_update: true
 package_upgrade: false
 
-# Enable password authentication for SSH (cloud images disable it by default).
+# Ask cloud-init to enable SSH password authentication (cloud images disable it
+# by default). A runcmd below also enforces it as belt-and-suspenders.
 ssh_pwauth: true
 
 packages:
@@ -23,20 +24,16 @@ users:
     shell: /bin/bash
     lock_passwd: false
 
-# Set the randomly generated passwords. jsonencode() safely quotes/escapes any
-# special characters so the YAML stays valid. type=text lets cloud-init hash the
-# plaintext with the OS default algorithm.
-chpasswd:
-  expire: false
-  users:
-    - name: ${admin_username}
-      password: ${jsonencode(admin_password)}
-      type: text
-    - name: ${user_username}
-      password: ${jsonencode(user_password)}
-      type: text
-
 runcmd:
+  # Set the randomly generated passwords via chpasswd directly. This works on
+  # every cloud-init version (unlike the newer structured chpasswd schema), and
+  # the passwords never contain a ':' or single quote, so the quoting is safe.
+  # jsonencode() produces a valid, fully quoted YAML/shell string.
+  - ${jsonencode(format("echo '%s:%s' | chpasswd", admin_username, admin_password))}
+  - ${jsonencode(format("echo '%s:%s' | chpasswd", user_username, user_password))}
+  # Force-enable SSH password authentication and restart sshd so it takes effect.
+  - printf 'PasswordAuthentication yes\nKbdInteractiveAuthentication yes\n' > /etc/ssh/sshd_config.d/60-enable-passwords.conf
+  - systemctl restart sshd
   # Start Docker and grant both accounts access to the daemon socket. The docker
   # group is created by the docker package, so add membership here (after the
   # package install) rather than at user-creation time.
